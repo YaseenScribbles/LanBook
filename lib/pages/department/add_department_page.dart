@@ -1,7 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:lanbook/constants/constants.dart';
+import 'package:lanbook/common/common.dart';
 import 'package:lanbook/model/department.dart';
 import 'package:lanbook/pages/loading_page.dart';
 import 'package:lanbook/services/lanbook_service.dart';

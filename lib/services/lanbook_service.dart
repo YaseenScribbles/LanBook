@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:lanbook/constants/constants.dart';
+import 'package:lanbook/common/common.dart';
 import 'package:lanbook/model/category.dart';
 import 'package:lanbook/model/department.dart';
 
@@ -99,6 +99,37 @@ class LanbookService {
       return 'Created Successfully';
     } else {
       return 'Status : ${response.reasonPhrase}';
+    }
+  }
+
+  updateDepartment(Department department) async {
+    var url = Uri.parse('${kURL}departments/${department.id}');
+
+    Map<String, String> headers = kHeaderWithAuth;
+
+    final body = jsonEncode({
+      'id': department.id,
+      'name': department.name,
+      'is_active': department.isactive! ? 1 : 0,
+      'user_id': department.userId,
+    });
+
+    http.Response response = await http.put(url, headers: headers, body: body);
+    if (response.statusCode == 200) {
+      return 'Updated successfully';
+    } else {
+      return response.reasonPhrase.toString();
+    }
+  }
+
+  deleteDepartment(Department department) async {
+    var url = Uri.parse('${kURL}departments/${department.id}');
+    Map<String, String> headers = kHeaderWithAuth;
+    http.Response response = await http.delete(url, headers: headers);
+    if (response.statusCode == 200) {
+      return 'Deleted successfully';
+    } else {
+      return response.reasonPhrase.toString();
     }
   }
 }

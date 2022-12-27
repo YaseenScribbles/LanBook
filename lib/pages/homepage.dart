@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lanbook/constants/constants.dart';
+import 'package:lanbook/common/common.dart';
 import 'package:lanbook/db_helper/repository.dart';
 import 'package:lanbook/pages/category/categories_list_page.dart';
 import 'package:lanbook/pages/department/departments_list_page.dart';

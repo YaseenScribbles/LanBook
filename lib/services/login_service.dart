@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:lanbook/constants/constants.dart';
+import 'package:lanbook/common/common.dart';
 import 'package:lanbook/db_helper/repository.dart';
 
 import '../pages/loading_page.dart';

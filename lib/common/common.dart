@@ -45,3 +45,41 @@ const kIconFont = TextStyle(
   fontSize: 18.0,
   fontWeight: FontWeight.bold,
 );
+
+Future<void> showDialogBox(BuildContext context, String titleText,
+    String contentText, String btnText1, String btnText2, Function function1) {
+  return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            titleText,
+            style: kFontBold,
+          ),
+          content: Text(
+            contentText,
+            style: kFontBold,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await function1(context);
+              },
+              child: Text(
+                btnText1,
+                style: kFontBold,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                btnText2,
+                style: kFontBold,
+              ),
+            ),
+          ],
+        );
+      });
+}

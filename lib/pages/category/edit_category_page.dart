@@ -1,7 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:lanbook/constants/constants.dart';
+import 'package:lanbook/common/common.dart';
 import 'package:lanbook/model/category.dart';
 import 'package:lanbook/pages/loading_page.dart';
 import 'package:lanbook/services/lanbook_service.dart';
@@ -19,6 +19,17 @@ class _EditCategoryState extends State<EditCategory> {
   bool isActive = true;
   LanbookService service = LanbookService();
   Category category = Category();
+  String result = '';
+
+  deleteCategory(BuildContext context) async {
+    category.id = widget.category.id;
+    result = await service.deleteCategory(category);
+    if (result == 'Deleted successfully') {
+      customSnackBar(context, result);
+      Navigator.pop(context, result);
+      Navigator.pop(context, result);
+    }
+  }
 
   @override
   void initState() {
@@ -41,6 +52,15 @@ class _EditCategoryState extends State<EditCategory> {
           'Edit Category',
           style: kFontAppBar,
         ),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await showDialogBox(context, 'Delete', 'Are you sure', 'Ok',
+                  'Cancel', deleteCategory);
+            },
+            icon: const Icon(Icons.delete),
+          ),
+        ],
       ),
       body: SafeArea(
           child: Padding(
