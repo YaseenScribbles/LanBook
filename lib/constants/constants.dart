@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:lanbook/pages/loading_page.dart';
 
 const kURL = 'http://192.168.0.220/lanbook/api/';
+
+Map<String, String> kHeaderWithAuth = {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer $userToken'
+};
+
+Map<String, String> kHeaderWithoutAuth = {
+  'Content-Type': 'application/json',
+};
 
 customSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(

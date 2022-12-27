@@ -26,6 +26,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
       model.name = category['name'];
       model.isactive = category['is_active'] == 1 ? true : false;
       categoryList.add(model);
+      categoryList.sort(((a, b) => a.id!.compareTo(b.id!)));
     }
     setState(() {
       categoryCount = categoryList.length;
