@@ -3,6 +3,7 @@ import 'package:lanbook/common/common.dart';
 import 'package:lanbook/db_helper/repository.dart';
 import 'package:lanbook/pages/category/categories_list_page.dart';
 import 'package:lanbook/pages/department/departments_list_page.dart';
+import 'package:lanbook/pages/device/devices_list_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -132,7 +133,12 @@ class _HomePageState extends State<HomePage> {
                       child: SizedBox(
                         height: 120.0,
                         child: ElevatedButton(
-                          onPressed: (() {}),
+                          onPressed: (() {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: ((context) {
+                              return const DevicesPage();
+                            })));
+                          }),
                           child: const Text(
                             'Devices',
                             style: kIconFont,
