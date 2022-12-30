@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lanbook/common/common.dart';
 import 'package:lanbook/db_helper/repository.dart';
-
 import '../pages/loading_page.dart';
 
 class LoginService {
@@ -24,7 +23,12 @@ class LoginService {
     if (response.statusCode == 200) {
       Map<String, dynamic> json = jsonDecode(response.body);
 
-      _repository.saveUserInfo(json['token'], json['name'], json['admin'], 1);
+      await _repository.saveUserInfo(
+          json['token'], json['name'], json['admin'], 1, email, password);
+
+      userName = json['name'];
+      userToken = json['token'];
+      isAdmin = json['admin'] == 1 ? true : false;
 
       return 'Logged In';
     } else {
@@ -32,7 +36,24 @@ class LoginService {
     }
   }
 
-  userId() async {
+  logout() async {
+    var url = Uri.parse('${kURL}logout');
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
+    http.Response response = await http.post(url, headers: headers);
+    if (response.statusCode == 200) {
+      userName = '';
+      userToken = '';
+      isAdmin = false;
+      return 'Logged Out';
+    } else {
+      return response.reasonPhrase.toString();
+    }
+  }
+
+  getUserId() async {
     var url = Uri.parse('${kURL}user');
 
     Map<String, String> headers = {

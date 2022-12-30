@@ -4,15 +4,20 @@ import 'package:lanbook/common/common.dart';
 import 'package:lanbook/model/category.dart';
 import 'package:lanbook/model/department.dart';
 import 'package:lanbook/model/device.dart';
+import 'package:lanbook/pages/loading_page.dart';
 
 class LanbookService {
   getCategories() async {
     var url = Uri.parse('${kURL}categories');
 
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
 
+    print(headers);
     http.Response response = await http.get(url, headers: headers);
-
+    print(response.body);
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       return data;
@@ -24,7 +29,10 @@ class LanbookService {
   saveCategory(Category category) async {
     var url = Uri.parse('${kURL}categories');
 
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
 
     final body = jsonEncode({
       'name': category.name,
@@ -42,7 +50,10 @@ class LanbookService {
   updateCategory(Category category) async {
     var url = Uri.parse('${kURL}categories/${category.id}');
 
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
 
     final body = jsonEncode({
       'id': category.id,
@@ -61,7 +72,10 @@ class LanbookService {
 
   deleteCategory(Category category) async {
     var url = Uri.parse('${kURL}categories/${category.id}');
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
     http.Response response = await http.delete(url, headers: headers);
     if (response.statusCode == 200) {
       return 'Deleted successfully';
@@ -73,7 +87,10 @@ class LanbookService {
   getDepartments() async {
     var url = Uri.parse('${kURL}departments');
 
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
 
     http.Response response = await http.get(url, headers: headers);
 
@@ -88,7 +105,10 @@ class LanbookService {
   saveDepartment(Department department) async {
     var url = Uri.parse('${kURL}departments');
 
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
 
     final body = jsonEncode({
       'name': department.name,
@@ -106,7 +126,10 @@ class LanbookService {
   updateDepartment(Department department) async {
     var url = Uri.parse('${kURL}departments/${department.id}');
 
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
 
     final body = jsonEncode({
       'id': department.id,
@@ -125,7 +148,10 @@ class LanbookService {
 
   deleteDepartment(Department department) async {
     var url = Uri.parse('${kURL}departments/${department.id}');
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
     http.Response response = await http.delete(url, headers: headers);
     if (response.statusCode == 200) {
       return 'Deleted successfully';
@@ -136,7 +162,10 @@ class LanbookService {
 
   getDevices() async {
     var url = Uri.parse('${kURL}devices');
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
     http.Response response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -147,7 +176,10 @@ class LanbookService {
 
   saveDevice(Device device) async {
     var url = Uri.parse('${kURL}devices');
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
     final body = jsonEncode({
       'name': device.name,
       'category_id': device.categoryId,
@@ -174,7 +206,10 @@ class LanbookService {
 
   updateDevice(Device device) async {
     var url = Uri.parse('${kURL}devices/${device.id}');
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
     final body = jsonEncode({
       'id': device.id,
       'name': device.name,
@@ -203,7 +238,10 @@ class LanbookService {
 
   deleteDevice(Device device) async {
     var url = Uri.parse('${kURL}devices/${device.id}');
-    Map<String, String> headers = kHeaderWithAuth;
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $userToken'
+    };
     http.Response response = await http.delete(url, headers: headers);
     if (response.statusCode == 200) {
       return ('Deleted successfully');

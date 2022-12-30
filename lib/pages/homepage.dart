@@ -1,9 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:lanbook/common/common.dart';
 import 'package:lanbook/db_helper/repository.dart';
 import 'package:lanbook/pages/category/categories_list_page.dart';
 import 'package:lanbook/pages/department/departments_list_page.dart';
 import 'package:lanbook/pages/device/devices_list_page.dart';
+import 'package:lanbook/pages/loading_page.dart';
+import 'package:lanbook/pages/login_page.dart';
+import 'package:lanbook/services/login_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,6 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Repository repository = Repository();
+  LoginService service = LoginService();
 
   Future<void> showDialogBox(BuildContext context) {
     return showDialog(
@@ -30,7 +36,19 @@ class _HomePageState extends State<HomePage> {
             ),
             actions: [
               TextButton(
-                onPressed: () {},
+                onPressed: () async {
+                  await repository.updateUserInfo();
+                  var result = await service.logout();
+                  userToken = '';
+                  userName = '';
+                  isAdmin = false;
+                  userId = 0;
+                  customSnackBar(context, result);
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: ((context) {
+                    return const LogIn();
+                  })));
+                },
                 child: const Text(
                   'OK',
                   style: kFontBold,
@@ -50,9 +68,14 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
+  getUserInfo() async {
+    userId = await service.getUserId();
+  }
+
   @override
   void initState() {
     super.initState();
+    getUserInfo();
   }
 
   @override

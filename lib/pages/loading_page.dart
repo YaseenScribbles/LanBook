@@ -26,11 +26,10 @@ class _LoadingPageState extends State<LoadingPage> {
   getUserInfo() async {
     List<dynamic> userInfo = await repository.readUserInfo();
     if (userInfo.isNotEmpty) {
-      userToken = userInfo[0]['token'];
-      userName = userInfo[0]['name'];
-      isAdmin = userInfo[0]['role'] == 1 ? true : false;
-      userId = await service.userId();
       Navigator.push(context, MaterialPageRoute(builder: ((context) {
+        userName = userInfo[0]['name'];
+        userToken = userInfo[0]['token'];
+        isAdmin = userInfo[0]['admin'] == 1 ? true : false;
         return const HomePage();
       })));
     } else {

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:lanbook/common/common.dart';
+import 'package:lanbook/db_helper/repository.dart';
 import 'package:lanbook/pages/homepage.dart';
 import 'package:lanbook/services/login_service.dart';
 
@@ -18,6 +19,21 @@ class _LogInState extends State<LogIn> {
   bool _nameValidation = false;
   bool _passwordValidation = false;
   final LoginService _service = LoginService();
+  Repository repository = Repository();
+
+  getLastLoggedUserInfo() async {
+    List<Map<String, dynamic>> results = await repository.lastLoggedUserInfo();
+    if (results.isNotEmpty) {
+      _emailCtrl.text = results[0]['email'];
+      _passwordCtrl.text = results[0]['password'];
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getLastLoggedUserInfo();
+  }
 
   @override
   Widget build(BuildContext context) {

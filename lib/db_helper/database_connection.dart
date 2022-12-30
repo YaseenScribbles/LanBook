@@ -8,7 +8,7 @@ class DatabaseConnection {
     var path = join(directory.path, 'LANBOOK');
     var database = await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDb,
       onUpgrade: _upgradeDb,
     );
@@ -38,6 +38,8 @@ class DatabaseConnection {
     String userInfoTable = """
       CREATE TABLE user_info (
         id INTERGER PRIMARY KEY,
+        email TEXT,
+        password TEXT,
         token TEXT,
         name TEXT,
         role INTEGER,
