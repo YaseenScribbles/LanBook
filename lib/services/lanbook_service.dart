@@ -15,9 +15,7 @@ class LanbookService {
       'Authorization': 'Bearer $userToken'
     };
 
-    print(headers);
     http.Response response = await http.get(url, headers: headers);
-    print(response.body);
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       return data;

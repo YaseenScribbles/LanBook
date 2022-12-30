@@ -15,7 +15,9 @@ class DevicesPage extends StatefulWidget {
 class _DevicesPageState extends State<DevicesPage> {
   int deviceCount = 0;
   List<Device> deviceList = <Device>[];
+  List<Device> tempList = <Device>[];
   LanbookService service = LanbookService();
+  TextEditingController searchCtrl = TextEditingController();
 
   getDevices() async {
     deviceList = [];
@@ -42,6 +44,7 @@ class _DevicesPageState extends State<DevicesPage> {
     setState(() {
       deviceCount = deviceList.length;
     });
+    tempList = deviceList;
   }
 
   noDevices() {
@@ -57,31 +60,60 @@ class _DevicesPageState extends State<DevicesPage> {
     return Container(
       margin: const EdgeInsets.only(top: 10.0),
       child: ListView.builder(
-          itemCount: deviceCount,
+          itemCount: tempList.length + 1,
           itemBuilder: ((context, index) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Card(
-                elevation: 10.0,
-                child: ListTile(
-                  onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: ((context) {
-                      return EditDevice(device: deviceList[index]);
-                    }))).then((value) {
-                      if (value != null) {
-                        getDevices();
-                      }
-                    });
-                  },
-                  title: Text(
-                    deviceList[index].name.toString(),
-                    style: kFontBold,
-                  ),
-                ),
-              ),
-            );
+            if (index == 0) {
+              return searchBar();
+            } else {
+              return listView(index - 1);
+            }
           })),
+    );
+  }
+
+  listView(index) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Card(
+        elevation: 10.0,
+        child: ListTile(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: ((context) {
+              return EditDevice(device: tempList[index]);
+            }))).then((value) {
+              if (value != null) {
+                getDevices();
+              }
+            });
+          },
+          title: Text(
+            tempList[index].name.toString(),
+            style: kFontBold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  searchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: TextField(
+        controller: searchCtrl,
+        decoration: const InputDecoration(
+          hintText: 'Enter search term',
+          border: OutlineInputBorder(),
+        ),
+        onChanged: ((value) {
+          String searchTerm = value.toLowerCase();
+          setState(() {
+            tempList = deviceList.where((device) {
+              String deviceName = device.name!.toLowerCase();
+              return deviceName.contains(searchTerm);
+            }).toList();
+          });
+        }),
+      ),
     );
   }
 

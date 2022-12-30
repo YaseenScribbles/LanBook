@@ -36,6 +36,13 @@ class _LogInState extends State<LogIn> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
