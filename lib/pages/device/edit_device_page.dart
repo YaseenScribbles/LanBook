@@ -120,9 +120,6 @@ class _EditDeviceState extends State<EditDevice> {
 
     ipAddress5Ctrl.text = getIp(results[4]['ip_value']);
     ip5Secondary = results[4]['is_secondary'] == 1 ? true : false;
-    if (results.length == 5) {
-      return;
-    }
   }
 
   updateAddress(int deviceId, String ip, bool isSecondary) async {
