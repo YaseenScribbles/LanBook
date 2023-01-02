@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:lanbook/common/common.dart';
+import 'package:lanbook/model/address.dart';
 import 'package:lanbook/model/category.dart';
 import 'package:lanbook/model/department.dart';
 import 'package:lanbook/model/device.dart';
@@ -25,6 +26,18 @@ class _EditDeviceState extends State<EditDevice> {
   TextEditingController wifiNameCtrl = TextEditingController();
   TextEditingController wifiPasswordCtrl = TextEditingController();
   TextEditingController wifiIpRangeCtrl = TextEditingController();
+  TextEditingController ipAddress1Ctrl = TextEditingController();
+  TextEditingController ipAddress2Ctrl = TextEditingController();
+  TextEditingController ipAddress3Ctrl = TextEditingController();
+  TextEditingController ipAddress4Ctrl = TextEditingController();
+  TextEditingController ipAddress5Ctrl = TextEditingController();
+  bool ip1Secondary = false;
+  bool ip2Secondary = true;
+  bool ip3Secondary = true;
+  bool ip4Secondary = true;
+  bool ip5Secondary = true;
+  bool ipValidation = false;
+  int deviceId = 0;
   int categoryId = 0;
   int departmentId = 0;
   bool domain = true;
@@ -70,6 +83,7 @@ class _EditDeviceState extends State<EditDevice> {
   deleteDevice(BuildContext context) async {
     device.id = widget.device.id;
     result = await service.deleteDevice(device);
+    await service.deleteIpAddress(deviceId);
     if (result == 'Deleted successfully') {
       customSnackBar(context, result);
       Navigator.pop(context, result);
@@ -77,10 +91,53 @@ class _EditDeviceState extends State<EditDevice> {
     }
   }
 
+  getAddress() async {
+    List<dynamic> results = await service.getIpAddress(deviceId);
+
+    ipAddress1Ctrl.text = getIp(results[0]['ip_value']);
+    ip1Secondary = results[0]['is_secondary'] == 1 ? true : false;
+    if (results.length == 1) {
+      return;
+    }
+
+    ipAddress2Ctrl.text = getIp(results[1]['ip_value']);
+    ip2Secondary = results[1]['is_secondary'] == 1 ? true : false;
+    if (results.length == 2) {
+      return;
+    }
+
+    ipAddress3Ctrl.text = getIp(results[2]['ip_value']);
+    ip3Secondary = results[2]['is_secondary'] == 1 ? true : false;
+    if (results.length == 3) {
+      return;
+    }
+
+    ipAddress4Ctrl.text = getIp(results[3]['ip_value']);
+    ip4Secondary = results[3]['is_secondary'] == 1 ? true : false;
+    if (results.length == 4) {
+      return;
+    }
+
+    ipAddress5Ctrl.text = getIp(results[4]['ip_value']);
+    ip5Secondary = results[4]['is_secondary'] == 1 ? true : false;
+    if (results.length == 5) {
+      return;
+    }
+  }
+
+  updateAddress(int deviceId, String ip, bool isSecondary) async {
+    Address address = Address();
+    address.deviceId = deviceId;
+    address.ipValue = ip;
+    address.isSecondary = isSecondary;
+    await service.storeIpAddress(address);
+  }
+
   @override
   void initState() {
     super.initState();
     getCategroiesAndDepartment();
+    deviceId = widget.device.id!;
     nameCtrl.text = widget.device.name.toString();
     categoryId = widget.device.categoryId!;
     departmentId = widget.device.departmentId!;
@@ -93,6 +150,7 @@ class _EditDeviceState extends State<EditDevice> {
     wifiPasswordCtrl.text = widget.device.wifiPassword.toString();
     wifiIpRangeCtrl.text = widget.device.wifiIpRange.toString();
     isActive = widget.device.isActive! ? true : false;
+    getAddress();
   }
 
   @override
@@ -106,6 +164,11 @@ class _EditDeviceState extends State<EditDevice> {
     wifiNameCtrl.dispose();
     wifiPasswordCtrl.dispose();
     wifiIpRangeCtrl.dispose();
+    ipAddress1Ctrl.dispose();
+    ipAddress2Ctrl.dispose();
+    ipAddress3Ctrl.dispose();
+    ipAddress4Ctrl.dispose();
+    ipAddress5Ctrl.dispose();
   }
 
   @override
@@ -261,6 +324,128 @@ class _EditDeviceState extends State<EditDevice> {
                 height: 20.0,
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: const [
+                  Text(
+                    'Secondary',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 15.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress1Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 1',
+                  hintText: 'Enter ip address',
+                  errorText: ipValidation ? 'Enter one ip address' : null,
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip1Secondary = !ip1Secondary;
+                      });
+                    },
+                    icon: Icon(ip1Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress2Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 2',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip2Secondary = !ip2Secondary;
+                      });
+                    },
+                    icon: Icon(ip2Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress3Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 3',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip3Secondary = !ip3Secondary;
+                      });
+                    },
+                    icon: Icon(ip3Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress4Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 4',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip4Secondary = !ip4Secondary;
+                      });
+                    },
+                    icon: Icon(ip4Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress5Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 5',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip5Secondary = !ip5Secondary;
+                      });
+                    },
+                    icon: Icon(ip5Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Checkbox(
@@ -320,6 +505,8 @@ class _EditDeviceState extends State<EditDevice> {
                     departmentId <= 0
                         ? departmentValidation = true
                         : departmentValidation = false;
+
+                    ipAddress1Ctrl.text.isEmpty ? ipValidation = true : false;
                   });
 
                   if (categoryValidation) {
@@ -331,7 +518,7 @@ class _EditDeviceState extends State<EditDevice> {
                   }
 
                   Device device = Device();
-                  device.id = widget.device.id;
+                  device.id = deviceId;
                   device.name = nameCtrl.text;
                   device.categoryId = categoryId;
                   device.departmentId = departmentId;
@@ -347,6 +534,22 @@ class _EditDeviceState extends State<EditDevice> {
                   device.userId = userId;
 
                   var result = await service.updateDevice(device);
+                  await service.deleteIpAddress(deviceId);
+                  await updateAddress(
+                      deviceId, ipAddress1Ctrl.text, ip1Secondary);
+                  if (ipAddress2Ctrl.text.isNotEmpty) {
+                    await updateAddress(
+                        deviceId, ipAddress2Ctrl.text, ip2Secondary);
+                  } else if (ipAddress3Ctrl.text.isNotEmpty) {
+                    await updateAddress(
+                        deviceId, ipAddress3Ctrl.text, ip3Secondary);
+                  } else if (ipAddress4Ctrl.text.isNotEmpty) {
+                    await updateAddress(
+                        deviceId, ipAddress4Ctrl.text, ip4Secondary);
+                  } else if (ipAddress5Ctrl.text.isNotEmpty) {
+                    await updateAddress(
+                        deviceId, ipAddress5Ctrl.text, ip5Secondary);
+                  }
                   customSnackBar(context, result);
                   Navigator.pop(context, result);
                 },

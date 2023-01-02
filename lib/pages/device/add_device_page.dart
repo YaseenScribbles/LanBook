@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:lanbook/common/common.dart';
+import 'package:lanbook/model/address.dart';
 import 'package:lanbook/model/category.dart';
 import 'package:lanbook/model/department.dart';
 import 'package:lanbook/model/device.dart';
@@ -24,12 +25,24 @@ class _AddDeviceState extends State<AddDevice> {
   TextEditingController wifiNameCtrl = TextEditingController();
   TextEditingController wifiPasswordCtrl = TextEditingController();
   TextEditingController wifiIpRangeCtrl = TextEditingController();
+  TextEditingController ipAddress1Ctrl = TextEditingController();
+  TextEditingController ipAddress2Ctrl = TextEditingController();
+  TextEditingController ipAddress3Ctrl = TextEditingController();
+  TextEditingController ipAddress4Ctrl = TextEditingController();
+  TextEditingController ipAddress5Ctrl = TextEditingController();
+
   int categoryId = 0;
   int departmentId = 0;
   bool domain = true;
+  bool ip1Secondary = false;
+  bool ip2Secondary = true;
+  bool ip3Secondary = true;
+  bool ip4Secondary = true;
+  bool ip5Secondary = true;
   bool nameValidation = false;
-  var categoryValidation = false;
+  bool categoryValidation = false;
   bool departmentValidation = false;
+  bool ipValidation = false;
   LanbookService service = LanbookService();
   List<Category> categoryList = <Category>[];
   List<Department> departmentList = <Department>[];
@@ -63,6 +76,15 @@ class _AddDeviceState extends State<AddDevice> {
         .compareTo(b.name.toString().toLowerCase())));
   }
 
+  storeAddress(int deviceId, String ip, bool isSecondary) async {
+    Address address = Address();
+    address.deviceId = deviceId;
+    address.ipValue = ip;
+    address.isSecondary = isSecondary;
+    var result = await service.storeIpAddress(address);
+    return result;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +102,11 @@ class _AddDeviceState extends State<AddDevice> {
     wifiNameCtrl.dispose();
     wifiPasswordCtrl.dispose();
     wifiIpRangeCtrl.dispose();
+    ipAddress1Ctrl.dispose();
+    ipAddress2Ctrl.dispose();
+    ipAddress3Ctrl.dispose();
+    ipAddress4Ctrl.dispose();
+    ipAddress5Ctrl.dispose();
   }
 
   @override
@@ -227,6 +254,128 @@ class _AddDeviceState extends State<AddDevice> {
                 height: 20.0,
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: const [
+                  Text(
+                    'Secondary',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 15.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress1Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 1',
+                  hintText: 'Enter ip address',
+                  errorText: ipValidation ? 'Enter one ip address' : null,
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip1Secondary = !ip1Secondary;
+                      });
+                    },
+                    icon: Icon(ip1Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress2Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 2',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip2Secondary = !ip2Secondary;
+                      });
+                    },
+                    icon: Icon(ip2Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress3Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 3',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip3Secondary = !ip3Secondary;
+                      });
+                    },
+                    icon: Icon(ip3Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress4Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 4',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip4Secondary = !ip4Secondary;
+                      });
+                    },
+                    icon: Icon(ip4Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: ipAddress5Ctrl,
+                decoration: InputDecoration(
+                  labelText: 'IP Address 5',
+                  hintText: 'Enter ip address',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        ip5Secondary = !ip5Secondary;
+                      });
+                    },
+                    icon: Icon(ip5Secondary
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Checkbox(
@@ -263,6 +412,10 @@ class _AddDeviceState extends State<AddDevice> {
                     departmentId <= 0
                         ? departmentValidation = true
                         : departmentValidation = false;
+
+                    ipAddress1Ctrl.text.isEmpty
+                        ? ipValidation = true
+                        : ipValidation = false;
                   });
 
                   if (categoryValidation) {
@@ -288,7 +441,24 @@ class _AddDeviceState extends State<AddDevice> {
                   device.userId = userId;
 
                   var result = await service.saveDevice(device);
-                  customSnackBar(context, result);
+                  await storeAddress(
+                      result['id'], ipAddress1Ctrl.text, ip1Secondary);
+
+                  if (ipAddress2Ctrl.text.isNotEmpty) {
+                    await storeAddress(
+                        result['id'], ipAddress2Ctrl.text, ip2Secondary);
+                  } else if (ipAddress3Ctrl.text.isNotEmpty) {
+                    await storeAddress(
+                        result['id'], ipAddress3Ctrl.text, ip3Secondary);
+                  } else if (ipAddress4Ctrl.text.isNotEmpty) {
+                    await storeAddress(
+                        result['id'], ipAddress4Ctrl.text, ip4Secondary);
+                  } else if (ipAddress5Ctrl.text.isNotEmpty) {
+                    await storeAddress(
+                        result['id'], ipAddress5Ctrl.text, ip5Secondary);
+                  }
+
+                  customSnackBar(context, 'Created successfully');
                   Navigator.pop(context, result);
                 },
                 child: const Text(

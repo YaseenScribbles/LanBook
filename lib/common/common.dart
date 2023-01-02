@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:lanbook/pages/loading_page.dart';
 
 const kURL = 'http://192.168.0.220/lanbook/api/';
 
-Map<String, String> kHeaderWithAuth = {
-  'Content-Type': 'application/json',
-  'Authorization': 'Bearer $userToken'
-};
+getHeaderWithAuth(String token) {
+  Map<String, String> kHeaderWithAuth = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token'
+  };
+
+  return kHeaderWithAuth;
+}
 
 Map<String, String> kHeaderWithoutAuth = {
   'Content-Type': 'application/json',
@@ -82,4 +85,16 @@ Future<void> showDialogBox(BuildContext context, String titleText,
           ],
         );
       });
+}
+
+getIp(int ip) {
+  var strData = StringBuffer();
+  for (int i = 0; i < 4; i++) {
+    strData.write(ip >> 24 & 0xff);
+    if (i < 3) {
+      strData.write(".");
+    }
+    ip = ip << 8;
+  }
+  return strData.toString();
 }

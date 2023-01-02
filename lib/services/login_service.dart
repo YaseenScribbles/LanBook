@@ -9,9 +9,7 @@ class LoginService {
   login(String email, String password) async {
     var url = Uri.parse('${kURL}login');
 
-    Map<String, String> headers = {
-      'Content-Type': 'application/json',
-    };
+    Map<String, String> headers = kHeaderWithoutAuth;
 
     final body = jsonEncode({
       'email': email,
@@ -38,10 +36,7 @@ class LoginService {
 
   logout() async {
     var url = Uri.parse('${kURL}logout');
-    Map<String, String> headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $userToken'
-    };
+    Map<String, String> headers = getHeaderWithAuth(userToken);
     http.Response response = await http.post(url, headers: headers);
     if (response.statusCode == 200) {
       userName = '';
@@ -56,10 +51,7 @@ class LoginService {
   getUserId() async {
     var url = Uri.parse('${kURL}user');
 
-    Map<String, String> headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $userToken',
-    };
+    Map<String, String> headers = getHeaderWithAuth(userToken);
 
     http.Response response = await http.get(url, headers: headers);
 
