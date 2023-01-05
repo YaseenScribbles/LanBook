@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 const kURL = 'http://192.168.0.220/lanbook/api/';
 
+RegExp ipRegEx = RegExp(
+    '^(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\$');
+
 getHeaderWithAuth(String token) {
   Map<String, String> kHeaderWithAuth = {
     'Content-Type': 'application/json',
@@ -18,7 +21,7 @@ Map<String, String> kHeaderWithoutAuth = {
 customSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     backgroundColor: Colors.black,
-    duration: const Duration(seconds: 1),
+    duration: const Duration(seconds: 2),
     content: Text(
       message,
       style: const TextStyle(
@@ -98,3 +101,35 @@ getIp(int ip) {
   }
   return strData.toString();
 }
+
+List<String> listOfIpAddresses(String ip1, String ip2) {
+  List<String> list = [];
+  if (ip1.isEmpty || ip2.isEmpty) {
+    return list;
+  }
+  var startNum = ip1.split('.')[3];
+  String partialIp = ip1.substring(0, ip1.length - startNum.length);
+  var endNum = ip2.split('.')[3];
+
+  for (int i = int.parse(startNum); i <= int.parse(endNum); i++) {
+    list.add(partialIp + i.toString());
+  }
+  return list;
+}
+
+// DropdownButton(
+//                 isExpanded: true,
+//                 value: categoryId == 0 ? null : categoryId,
+//                 hint: const Text('Select a category'),
+//                 items: categoryList.map((category) {
+//                   return DropdownMenuItem(
+//                     value: category.id,
+//                     child: Text(category.name.toString()),
+//                   );
+//                 }).toList(),
+//                 onChanged: ((value) {
+//                   setState(() {
+//                     categoryId = value!;
+//                   });
+//                 }),
+//               ),

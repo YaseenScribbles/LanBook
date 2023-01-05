@@ -25,18 +25,13 @@ class _EditDeviceState extends State<EditDevice> {
   TextEditingController passwordCtrl = TextEditingController();
   TextEditingController wifiNameCtrl = TextEditingController();
   TextEditingController wifiPasswordCtrl = TextEditingController();
-  TextEditingController wifiIpRangeCtrl = TextEditingController();
+  TextEditingController wifiIpRangeStartCtrl = TextEditingController();
+  TextEditingController wifiIpRangeEndCtrl = TextEditingController();
   TextEditingController ipAddress1Ctrl = TextEditingController();
   TextEditingController ipAddress2Ctrl = TextEditingController();
   TextEditingController ipAddress3Ctrl = TextEditingController();
   TextEditingController ipAddress4Ctrl = TextEditingController();
   TextEditingController ipAddress5Ctrl = TextEditingController();
-  bool ip1Secondary = false;
-  bool ip2Secondary = true;
-  bool ip3Secondary = true;
-  bool ip4Secondary = true;
-  bool ip5Secondary = true;
-  bool ipValidation = false;
   int deviceId = 0;
   int categoryId = 0;
   int departmentId = 0;
@@ -45,11 +40,20 @@ class _EditDeviceState extends State<EditDevice> {
   bool nameValidation = false;
   var categoryValidation = false;
   bool departmentValidation = false;
+  bool ipValidation = false;
+  bool ip1Validation = false;
+  bool ip2Validation = false;
+  bool ip3Validation = false;
+  bool ip4Validation = false;
+  bool ip5Validation = false;
+  bool rangeIp1Validation = false;
+  bool rangeIp2Validation = false;
   LanbookService service = LanbookService();
   List<Category> categoryList = <Category>[];
   List<Department> departmentList = <Department>[];
   String result = '';
   Device device = Device();
+  bool isLoading = false;
 
   getCategroiesAndDepartment() async {
     var categories = await service.getCategories();
@@ -93,33 +97,29 @@ class _EditDeviceState extends State<EditDevice> {
 
   getAddress() async {
     List<dynamic> results = await service.getIpAddress(deviceId);
+    if (results.isEmpty) return;
 
-    ipAddress1Ctrl.text = getIp(results[0]['ip_value']);
-    ip1Secondary = results[0]['is_secondary'] == 1 ? true : false;
-    if (results.length == 1) {
-      return;
-    }
+    results = results.where((address) => address['is_secondary'] == 0).toList();
 
-    ipAddress2Ctrl.text = getIp(results[1]['ip_value']);
-    ip2Secondary = results[1]['is_secondary'] == 1 ? true : false;
-    if (results.length == 2) {
-      return;
-    }
+    if (results.isEmpty) return;
+    ipAddress1Ctrl.text =
+        results[0]['is_secondary'] == 1 ? '' : getIp(results[0]['ip_value']);
+    if (results.length == 1) return;
 
-    ipAddress3Ctrl.text = getIp(results[2]['ip_value']);
-    ip3Secondary = results[2]['is_secondary'] == 1 ? true : false;
-    if (results.length == 3) {
-      return;
-    }
+    ipAddress2Ctrl.text =
+        results[1]['is_secondary'] == 1 ? '' : getIp(results[1]['ip_value']);
+    if (results.length == 2) return;
 
-    ipAddress4Ctrl.text = getIp(results[3]['ip_value']);
-    ip4Secondary = results[3]['is_secondary'] == 1 ? true : false;
-    if (results.length == 4) {
-      return;
-    }
+    ipAddress3Ctrl.text =
+        results[2]['is_secondary'] == 1 ? '' : getIp(results[2]['ip_value']);
+    if (results.length == 3) return;
 
-    ipAddress5Ctrl.text = getIp(results[4]['ip_value']);
-    ip5Secondary = results[4]['is_secondary'] == 1 ? true : false;
+    ipAddress4Ctrl.text =
+        results[3]['is_secondary'] == 1 ? '' : getIp(results[3]['ip_value']);
+    if (results.length == 4) return;
+
+    ipAddress5Ctrl.text =
+        results[4]['is_secondary'] == 1 ? '' : getIp(results[4]['ip_value']);
   }
 
   updateAddress(int deviceId, String ip, bool isSecondary) async {
@@ -128,6 +128,21 @@ class _EditDeviceState extends State<EditDevice> {
     address.ipValue = ip;
     address.isSecondary = isSecondary;
     await service.storeIpAddress(address);
+  }
+
+  ipListValidation(
+      List<String> tempList, List<Address> ipList, List<String> addingList) {
+    // ipList = ipList.where((ip) => ip.isSecondary == true).toList();
+    for (var i = 0; i < tempList.length; i++) {
+      for (var j = 0; j < ipList.length; j++) {
+        if (tempList[i] == ipList[j].ipValue.toString()) {
+          addingList.add(ipList[j].ipValue.toString());
+        }
+      }
+    }
+    setState(() {
+      addingList.isNotEmpty ? ipValidation = true : ipValidation = false;
+    });
   }
 
   @override
@@ -145,7 +160,10 @@ class _EditDeviceState extends State<EditDevice> {
     passwordCtrl.text = widget.device.password.toString();
     wifiNameCtrl.text = widget.device.wifiName.toString();
     wifiPasswordCtrl.text = widget.device.wifiPassword.toString();
-    wifiIpRangeCtrl.text = widget.device.wifiIpRange.toString();
+    if (widget.device.wifiIpRange != '') {
+      wifiIpRangeStartCtrl.text = widget.device.wifiIpRange!.split('-')[0];
+      wifiIpRangeEndCtrl.text = widget.device.wifiIpRange!.split('-')[1];
+    }
     isActive = widget.device.isActive! ? true : false;
     getAddress();
   }
@@ -160,7 +178,8 @@ class _EditDeviceState extends State<EditDevice> {
     passwordCtrl.dispose();
     wifiNameCtrl.dispose();
     wifiPasswordCtrl.dispose();
-    wifiIpRangeCtrl.dispose();
+    wifiIpRangeStartCtrl.dispose();
+    wifiIpRangeEndCtrl.dispose();
     ipAddress1Ctrl.dispose();
     ipAddress2Ctrl.dispose();
     ipAddress3Ctrl.dispose();
@@ -173,7 +192,7 @@ class _EditDeviceState extends State<EditDevice> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Add Device',
+          'Edit Device',
           style: kFontAppBar,
         ),
         actions: [
@@ -202,41 +221,49 @@ class _EditDeviceState extends State<EditDevice> {
               const SizedBox(
                 height: 20.0,
               ),
-              DropdownButton(
-                isExpanded: true,
-                value: categoryId == 0 ? null : categoryId,
-                hint: const Text('Select a category'),
-                items: categoryList.map((category) {
-                  return DropdownMenuItem(
-                    value: category.id,
-                    child: Text(category.name.toString()),
-                  );
-                }).toList(),
-                onChanged: ((value) {
-                  setState(() {
-                    categoryId = value!;
-                  });
-                }),
-              ),
+              DropdownButtonFormField(
+                  value: categoryId == 0 ? null : categoryId,
+                  decoration: InputDecoration(
+                    labelText: 'Category',
+                    hintText: 'Select device category',
+                    errorText:
+                        categoryValidation ? 'Select valid category' : null,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: categoryList.map((category) {
+                    return DropdownMenuItem(
+                      value: category.id,
+                      child: Text(category.name.toString()),
+                    );
+                  }).toList(),
+                  onChanged: ((value) {
+                    setState(() {
+                      categoryId = value!;
+                    });
+                  })),
               const SizedBox(
                 height: 20.0,
               ),
-              DropdownButton(
-                isExpanded: true,
-                value: departmentId == 0 ? null : departmentId,
-                hint: const Text('Select a department'),
-                items: departmentList.map((department) {
-                  return DropdownMenuItem(
-                    value: department.id,
-                    child: Text(department.name.toString()),
-                  );
-                }).toList(),
-                onChanged: ((value) {
-                  setState(() {
-                    departmentId = value!;
-                  });
-                }),
-              ),
+              DropdownButtonFormField(
+                  value: departmentId == 0 ? null : departmentId,
+                  decoration: InputDecoration(
+                    labelText: 'Department',
+                    hintText: 'Select device department',
+                    errorText:
+                        departmentValidation ? 'Select valid department' : null,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: departmentList.map((department) {
+                    return DropdownMenuItem(
+                      value: department.id,
+                      child: Text(department.name.toString()),
+                    );
+                  }).toList(),
+                  onChanged: ((value) {
+                    setState(() {
+                      departmentId = value!;
+                    });
+                  })),
               const SizedBox(
                 height: 20.0,
               ),
@@ -309,26 +336,31 @@ class _EditDeviceState extends State<EditDevice> {
               const SizedBox(
                 height: 20.0,
               ),
-              TextField(
-                controller: wifiIpRangeCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'WIFI IP Range',
-                  hintText: 'Enter wifi ip range',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
-                  Text(
-                    'Secondary',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 15.0,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: wifiIpRangeStartCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'WIFI IP Range Start',
+                        hintText: 'Enter wifi starting ip',
+                        errorText: rangeIp1Validation ? 'Enter valid ip' : null,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 20.0,
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: wifiIpRangeEndCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'WIFI IP Range End',
+                        hintText: 'Enter wifi ending ip',
+                        errorText: rangeIp2Validation ? 'Enter valid ip' : null,
+                        border: const OutlineInputBorder(),
+                      ),
                     ),
                   ),
                 ],
@@ -341,18 +373,8 @@ class _EditDeviceState extends State<EditDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 1',
                   hintText: 'Enter ip address',
-                  errorText: ipValidation ? 'Enter one ip address' : null,
+                  errorText: ip1Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip1Secondary = !ip1Secondary;
-                      });
-                    },
-                    icon: Icon(ip1Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -363,17 +385,8 @@ class _EditDeviceState extends State<EditDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 2',
                   hintText: 'Enter ip address',
+                  errorText: ip2Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip2Secondary = !ip2Secondary;
-                      });
-                    },
-                    icon: Icon(ip2Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -384,17 +397,8 @@ class _EditDeviceState extends State<EditDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 3',
                   hintText: 'Enter ip address',
+                  errorText: ip3Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip3Secondary = !ip3Secondary;
-                      });
-                    },
-                    icon: Icon(ip3Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -405,17 +409,8 @@ class _EditDeviceState extends State<EditDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 4',
                   hintText: 'Enter ip address',
+                  errorText: ip4Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip4Secondary = !ip4Secondary;
-                      });
-                    },
-                    icon: Icon(ip4Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -427,16 +422,7 @@ class _EditDeviceState extends State<EditDevice> {
                   labelText: 'IP Address 5',
                   hintText: 'Enter ip address',
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip5Secondary = !ip5Secondary;
-                      });
-                    },
-                    icon: Icon(ip5Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
+                  errorText: ip5Validation ? 'Enter valid ip' : null,
                 ),
               ),
               const SizedBox(
@@ -491,6 +477,17 @@ class _EditDeviceState extends State<EditDevice> {
               ElevatedButton(
                 onPressed: () async {
                   setState(() {
+                    isLoading = true;
+                  });
+                  List<Address> ipList = await service.getAllIpAddresses();
+                  ipList =
+                      ipList.where((ip) => ip.deviceId != deviceId).toList();
+                  // List<Address> ipListPrimary =
+                  //     ipList.where((ip) => ip.isSecondary == false).toList();
+                  List<String> tempList = [];
+                  List<String> alreadyExists = [];
+
+                  setState(() {
                     nameCtrl.text.isEmpty
                         ? nameValidation = true
                         : nameValidation = false;
@@ -503,58 +500,193 @@ class _EditDeviceState extends State<EditDevice> {
                         ? departmentValidation = true
                         : departmentValidation = false;
 
-                    ipAddress1Ctrl.text.isEmpty ? ipValidation = true : false;
+                    if (ipAddress1Ctrl.text.isNotEmpty) {
+                      ip1Validation =
+                          ipRegEx.hasMatch(ipAddress1Ctrl.text) ? false : true;
+                      if (!ip1Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress1Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress1Ctrl.text.isEmpty) {
+                      ip1Validation = false;
+                    }
+                    if (ipAddress2Ctrl.text.isNotEmpty) {
+                      ip2Validation =
+                          ipRegEx.hasMatch(ipAddress2Ctrl.text) ? false : true;
+                      if (!ip2Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress2Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress2Ctrl.text.isEmpty) {
+                      ip2Validation = false;
+                    }
+                    if (ipAddress3Ctrl.text.isNotEmpty) {
+                      ip3Validation =
+                          ipRegEx.hasMatch(ipAddress3Ctrl.text) ? false : true;
+                      if (!ip3Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress3Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress3Ctrl.text.isEmpty) {
+                      ip3Validation = false;
+                    }
+                    if (ipAddress4Ctrl.text.isNotEmpty) {
+                      ip4Validation =
+                          ipRegEx.hasMatch(ipAddress4Ctrl.text) ? false : true;
+                      if (!ip4Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress4Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress4Ctrl.text.isEmpty) {
+                      ip4Validation = false;
+                    }
+                    if (ipAddress5Ctrl.text.isNotEmpty) {
+                      ip5Validation =
+                          ipRegEx.hasMatch(ipAddress5Ctrl.text) ? false : true;
+                      if (!ip5Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress5Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress5Ctrl.text.isEmpty) {
+                      ip5Validation = false;
+                    }
+                    if (wifiIpRangeStartCtrl.text.isNotEmpty) {
+                      rangeIp1Validation =
+                          ipRegEx.hasMatch(wifiIpRangeStartCtrl.text)
+                              ? false
+                              : true;
+                    } else if (wifiIpRangeStartCtrl.text.isEmpty) {
+                      rangeIp1Validation = false;
+                    }
+                    if (wifiIpRangeEndCtrl.text.isNotEmpty) {
+                      rangeIp2Validation =
+                          ipRegEx.hasMatch(wifiIpRangeEndCtrl.text)
+                              ? false
+                              : true;
+                    } else if (wifiIpRangeEndCtrl.text.isEmpty) {
+                      rangeIp2Validation = false;
+                    }
                   });
 
-                  if (categoryValidation) {
-                    customSnackBar(context, 'Select valid category');
-                    return;
-                  } else if (departmentValidation) {
-                    customSnackBar(context, 'Select valid department');
+                  if (wifiIpRangeStartCtrl.text.isNotEmpty &&
+                          wifiIpRangeEndCtrl.text.isEmpty ||
+                      wifiIpRangeStartCtrl.text.isEmpty &&
+                          wifiIpRangeEndCtrl.text.isNotEmpty) {
+                    customSnackBar(
+                        context, 'Please provide start and end ip range');
+                    setState(() {
+                      isLoading = false;
+                    });
                     return;
                   }
 
-                  Device device = Device();
-                  device.id = deviceId;
-                  device.name = nameCtrl.text;
-                  device.categoryId = categoryId;
-                  device.departmentId = departmentId;
-                  device.person = personCtrl.text;
-                  device.vncPassword = vncPasswordCtrl.text;
-                  device.userName = usernameCtrl.text;
-                  device.password = passwordCtrl.text;
-                  device.wifiName = wifiNameCtrl.text;
-                  device.wifiPassword = wifiPasswordCtrl.text;
-                  device.wifiIpRange = wifiIpRangeCtrl.text;
-                  device.domain = domain;
-                  device.isActive = isActive;
-                  device.userId = userId;
-
-                  var result = await service.updateDevice(device);
-                  await service.deleteIpAddress(deviceId);
-                  await updateAddress(
-                      deviceId, ipAddress1Ctrl.text, ip1Secondary);
-                  if (ipAddress2Ctrl.text.isNotEmpty) {
-                    await updateAddress(
-                        deviceId, ipAddress2Ctrl.text, ip2Secondary);
-                  } else if (ipAddress3Ctrl.text.isNotEmpty) {
-                    await updateAddress(
-                        deviceId, ipAddress3Ctrl.text, ip3Secondary);
-                  } else if (ipAddress4Ctrl.text.isNotEmpty) {
-                    await updateAddress(
-                        deviceId, ipAddress4Ctrl.text, ip4Secondary);
-                  } else if (ipAddress5Ctrl.text.isNotEmpty) {
-                    await updateAddress(
-                        deviceId, ipAddress5Ctrl.text, ip5Secondary);
+                  if (rangeIp1Validation == false &&
+                      rangeIp2Validation == false) {
+                    tempList = listOfIpAddresses(
+                        wifiIpRangeStartCtrl.text, wifiIpRangeEndCtrl.text);
+                    ipListValidation(tempList, ipList, alreadyExists);
                   }
-                  customSnackBar(context, result);
-                  Navigator.pop(context, result);
+
+                  if (ipValidation) {
+                    String message = '';
+                    for (var ip in alreadyExists) {
+                      message += '$ip\n';
+                    }
+                    customSnackBar(context, 'Already exists\n$message');
+                  }
+
+                  if (!nameValidation &&
+                      !categoryValidation &&
+                      !departmentValidation &&
+                      !ip1Validation &&
+                      !ip2Validation &&
+                      !ip3Validation &&
+                      !ip4Validation &&
+                      !ip5Validation &&
+                      !rangeIp1Validation &&
+                      !rangeIp2Validation &&
+                      !ipValidation) {
+                    Device device = Device();
+                    device.id = deviceId;
+                    device.name = nameCtrl.text;
+                    device.categoryId = categoryId;
+                    device.departmentId = departmentId;
+                    device.person = personCtrl.text;
+                    device.vncPassword = vncPasswordCtrl.text;
+                    device.userName = usernameCtrl.text;
+                    device.password = passwordCtrl.text;
+                    device.wifiName = wifiNameCtrl.text;
+                    device.wifiPassword = wifiPasswordCtrl.text;
+                    device.wifiIpRange =
+                        '${wifiIpRangeStartCtrl.text}-${wifiIpRangeEndCtrl.text}';
+                    device.domain = domain;
+                    device.isActive = isActive;
+                    device.userId = userId;
+
+                    var result = await service.updateDevice(device);
+                    await service.deleteIpAddress(deviceId);
+
+                    if (tempList.isNotEmpty) {
+                      for (String ip in tempList) {
+                        await updateAddress(deviceId, ip, true);
+                      }
+                    }
+                    if (ipAddress1Ctrl.text.isNotEmpty) {
+                      await updateAddress(deviceId, ipAddress1Ctrl.text, false);
+                    }
+                    if (ipAddress2Ctrl.text.isNotEmpty) {
+                      await updateAddress(deviceId, ipAddress2Ctrl.text, false);
+                    }
+                    if (ipAddress3Ctrl.text.isNotEmpty) {
+                      await updateAddress(deviceId, ipAddress3Ctrl.text, false);
+                    }
+                    if (ipAddress4Ctrl.text.isNotEmpty) {
+                      await updateAddress(deviceId, ipAddress4Ctrl.text, false);
+                    }
+                    if (ipAddress5Ctrl.text.isNotEmpty) {
+                      await updateAddress(deviceId, ipAddress5Ctrl.text, false);
+                    }
+                    customSnackBar(context, result);
+                    Navigator.pop(context, result);
+                  } else {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
                 },
                 child: const Text(
                   'Update',
                   style: kFontBold,
                 ),
-              )
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SizedBox(
+                  height: 20.0,
+                  width: double.infinity,
+                  child: isLoading ? const LinearProgressIndicator() : null,
+                ),
+              ),
             ]),
           ),
         ),

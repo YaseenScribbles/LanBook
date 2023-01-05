@@ -262,4 +262,24 @@ class LanbookService {
       return response.reasonPhrase.toString();
     }
   }
+
+  Future<List<Address>> getAllIpAddresses() async {
+    var url = Uri.parse('${kURL}addresses');
+    Map<String, String> headers = getHeaderWithAuth(userToken);
+    http.Response response = await http.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      List<Address> savedIpList = [];
+      List<dynamic> tempList = jsonDecode(response.body);
+      for (var address in tempList) {
+        var addressModel = Address();
+        addressModel.deviceId = address['device_id'];
+        addressModel.ipValue = getIp(address['ip_value']);
+        addressModel.isSecondary = address['is_secondary'] == 1 ? true : false;
+        savedIpList.add(addressModel);
+      }
+      return savedIpList;
+    } else {
+      return [];
+    }
+  }
 }

@@ -24,7 +24,8 @@ class _AddDeviceState extends State<AddDevice> {
   TextEditingController passwordCtrl = TextEditingController();
   TextEditingController wifiNameCtrl = TextEditingController();
   TextEditingController wifiPasswordCtrl = TextEditingController();
-  TextEditingController wifiIpRangeCtrl = TextEditingController();
+  TextEditingController wifiIpRangeStartCtrl = TextEditingController();
+  TextEditingController wifiIpRangeEndCtrl = TextEditingController();
   TextEditingController ipAddress1Ctrl = TextEditingController();
   TextEditingController ipAddress2Ctrl = TextEditingController();
   TextEditingController ipAddress3Ctrl = TextEditingController();
@@ -34,46 +35,53 @@ class _AddDeviceState extends State<AddDevice> {
   int categoryId = 0;
   int departmentId = 0;
   bool domain = true;
-  bool ip1Secondary = false;
-  bool ip2Secondary = true;
-  bool ip3Secondary = true;
-  bool ip4Secondary = true;
-  bool ip5Secondary = true;
   bool nameValidation = false;
   bool categoryValidation = false;
   bool departmentValidation = false;
   bool ipValidation = false;
+  bool ip1Validation = false;
+  bool ip2Validation = false;
+  bool ip3Validation = false;
+  bool ip4Validation = false;
+  bool ip5Validation = false;
+  bool rangeIp1Validation = false;
+  bool rangeIp2Validation = false;
   LanbookService service = LanbookService();
   List<Category> categoryList = <Category>[];
   List<Department> departmentList = <Department>[];
+  bool isLoading = false;
 
   getCategroiesAndDepartment() async {
-    var categories = await service.getCategories();
-    var departments = await service.getDepartments();
-    for (var category in categories) {
-      setState(() {
-        Category categoryModel = Category();
-        categoryModel.id = category['id'];
-        categoryModel.name = category['name'];
-        categoryList.add(categoryModel);
-      });
+    List<dynamic> categories = await service.getCategories();
+    List<dynamic> departments = await service.getDepartments();
+    if (categories.isNotEmpty) {
+      for (var category in categories) {
+        setState(() {
+          Category categoryModel = Category();
+          categoryModel.id = category['id'];
+          categoryModel.name = category['name'];
+          categoryList.add(categoryModel);
+        });
+      }
+      categoryList.sort(((a, b) => a.name
+          .toString()
+          .toLowerCase()
+          .compareTo(b.name.toString().toLowerCase())));
     }
-    categoryList.sort(((a, b) => a.name
-        .toString()
-        .toLowerCase()
-        .compareTo(b.name.toString().toLowerCase())));
-    for (var department in departments) {
-      setState(() {
-        Department departmentModel = Department();
-        departmentModel.id = department['id'];
-        departmentModel.name = department['name'];
-        departmentList.add(departmentModel);
-      });
+    if (departments.isNotEmpty) {
+      for (var department in departments) {
+        setState(() {
+          Department departmentModel = Department();
+          departmentModel.id = department['id'];
+          departmentModel.name = department['name'];
+          departmentList.add(departmentModel);
+        });
+      }
+      departmentList.sort(((a, b) => a.name
+          .toString()
+          .toLowerCase()
+          .compareTo(b.name.toString().toLowerCase())));
     }
-    departmentList.sort(((a, b) => a.name
-        .toString()
-        .toLowerCase()
-        .compareTo(b.name.toString().toLowerCase())));
   }
 
   storeAddress(int deviceId, String ip, bool isSecondary) async {
@@ -83,6 +91,21 @@ class _AddDeviceState extends State<AddDevice> {
     address.isSecondary = isSecondary;
     var result = await service.storeIpAddress(address);
     return result;
+  }
+
+  ipListValidation(
+      List<String> tempList, List<Address> ipList, List<String> addingList) {
+    // ipList = ipList.where((ip) => ip.isSecondary == true).toList();
+    for (var i = 0; i < tempList.length; i++) {
+      for (var j = 0; j < ipList.length; j++) {
+        if (tempList[i] == ipList[j].ipValue.toString()) {
+          addingList.add(ipList[j].ipValue.toString());
+        }
+      }
+    }
+    setState(() {
+      addingList.isNotEmpty ? ipValidation = true : ipValidation = false;
+    });
   }
 
   @override
@@ -101,7 +124,8 @@ class _AddDeviceState extends State<AddDevice> {
     passwordCtrl.dispose();
     wifiNameCtrl.dispose();
     wifiPasswordCtrl.dispose();
-    wifiIpRangeCtrl.dispose();
+    wifiIpRangeStartCtrl.dispose();
+    wifiIpRangeEndCtrl.dispose();
     ipAddress1Ctrl.dispose();
     ipAddress2Ctrl.dispose();
     ipAddress3Ctrl.dispose();
@@ -135,41 +159,47 @@ class _AddDeviceState extends State<AddDevice> {
               const SizedBox(
                 height: 20.0,
               ),
-              DropdownButton(
-                isExpanded: true,
-                value: categoryId == 0 ? null : categoryId,
-                hint: const Text('Select a category'),
-                items: categoryList.map((category) {
-                  return DropdownMenuItem(
-                    value: category.id,
-                    child: Text(category.name.toString()),
-                  );
-                }).toList(),
-                onChanged: ((value) {
-                  setState(() {
-                    categoryId = value!;
-                  });
-                }),
-              ),
+              DropdownButtonFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Category',
+                    hintText: 'Select device category',
+                    errorText:
+                        categoryValidation ? 'Select valid category' : null,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: categoryList.map((category) {
+                    return DropdownMenuItem(
+                      value: category.id,
+                      child: Text(category.name.toString()),
+                    );
+                  }).toList(),
+                  onChanged: ((value) {
+                    setState(() {
+                      categoryId = value!;
+                    });
+                  })),
               const SizedBox(
                 height: 20.0,
               ),
-              DropdownButton(
-                isExpanded: true,
-                value: departmentId == 0 ? null : departmentId,
-                hint: const Text('Select a department'),
-                items: departmentList.map((department) {
-                  return DropdownMenuItem(
-                    value: department.id,
-                    child: Text(department.name.toString()),
-                  );
-                }).toList(),
-                onChanged: ((value) {
-                  setState(() {
-                    departmentId = value!;
-                  });
-                }),
-              ),
+              DropdownButtonFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Department',
+                    hintText: 'Select device department',
+                    errorText:
+                        departmentValidation ? 'Select valid department' : null,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: departmentList.map((department) {
+                    return DropdownMenuItem(
+                      value: department.id,
+                      child: Text(department.name.toString()),
+                    );
+                  }).toList(),
+                  onChanged: ((value) {
+                    setState(() {
+                      departmentId = value!;
+                    });
+                  })),
               const SizedBox(
                 height: 20.0,
               ),
@@ -242,26 +272,31 @@ class _AddDeviceState extends State<AddDevice> {
               const SizedBox(
                 height: 20.0,
               ),
-              TextField(
-                controller: wifiIpRangeCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'WIFI IP Range',
-                  hintText: 'Enter wifi ip range',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
-                  Text(
-                    'Secondary',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 15.0,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: wifiIpRangeStartCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'WIFI IP Range Start',
+                        hintText: 'Enter wifi starting ip',
+                        errorText: rangeIp1Validation ? 'Enter valid ip' : null,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 20.0,
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: wifiIpRangeEndCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'WIFI IP Range End',
+                        hintText: 'Enter wifi ending ip',
+                        errorText: rangeIp2Validation ? 'Enter valid ip' : null,
+                        border: const OutlineInputBorder(),
+                      ),
                     ),
                   ),
                 ],
@@ -274,18 +309,8 @@ class _AddDeviceState extends State<AddDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 1',
                   hintText: 'Enter ip address',
-                  errorText: ipValidation ? 'Enter one ip address' : null,
+                  errorText: ip1Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip1Secondary = !ip1Secondary;
-                      });
-                    },
-                    icon: Icon(ip1Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -296,17 +321,8 @@ class _AddDeviceState extends State<AddDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 2',
                   hintText: 'Enter ip address',
+                  errorText: ip2Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip2Secondary = !ip2Secondary;
-                      });
-                    },
-                    icon: Icon(ip2Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -317,17 +333,8 @@ class _AddDeviceState extends State<AddDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 3',
                   hintText: 'Enter ip address',
+                  errorText: ip3Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip3Secondary = !ip3Secondary;
-                      });
-                    },
-                    icon: Icon(ip3Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -338,17 +345,8 @@ class _AddDeviceState extends State<AddDevice> {
                 decoration: InputDecoration(
                   labelText: 'IP Address 4',
                   hintText: 'Enter ip address',
+                  errorText: ip4Validation ? 'Enter valid ip' : null,
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip4Secondary = !ip4Secondary;
-                      });
-                    },
-                    icon: Icon(ip4Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -360,16 +358,7 @@ class _AddDeviceState extends State<AddDevice> {
                   labelText: 'IP Address 5',
                   hintText: 'Enter ip address',
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        ip5Secondary = !ip5Secondary;
-                      });
-                    },
-                    icon: Icon(ip5Secondary
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank_outlined),
-                  ),
+                  errorText: ip5Validation ? 'Enter valid ip' : null,
                 ),
               ),
               const SizedBox(
@@ -401,6 +390,15 @@ class _AddDeviceState extends State<AddDevice> {
               ElevatedButton(
                 onPressed: () async {
                   setState(() {
+                    isLoading = true;
+                  });
+                  List<Address> ipList = await service.getAllIpAddresses();
+                  // List<Address> ipListPrimary =
+                  //     ipList.where((ip) => ip.isSecondary == false).toList();
+                  List<String> tempList = [];
+                  List<String> alreadyExists = [];
+
+                  setState(() {
                     nameCtrl.text.isEmpty
                         ? nameValidation = true
                         : nameValidation = false;
@@ -413,59 +411,197 @@ class _AddDeviceState extends State<AddDevice> {
                         ? departmentValidation = true
                         : departmentValidation = false;
 
-                    ipAddress1Ctrl.text.isEmpty
-                        ? ipValidation = true
-                        : ipValidation = false;
+                    if (ipAddress1Ctrl.text.isNotEmpty) {
+                      ip1Validation =
+                          ipRegEx.hasMatch(ipAddress1Ctrl.text) ? false : true;
+                      if (!ip1Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress1Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress1Ctrl.text.isEmpty) {
+                      ip1Validation = false;
+                    }
+                    if (ipAddress2Ctrl.text.isNotEmpty) {
+                      ip2Validation =
+                          ipRegEx.hasMatch(ipAddress2Ctrl.text) ? false : true;
+                      if (!ip2Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress2Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress2Ctrl.text.isEmpty) {
+                      ip2Validation = false;
+                    }
+                    if (ipAddress3Ctrl.text.isNotEmpty) {
+                      ip3Validation =
+                          ipRegEx.hasMatch(ipAddress3Ctrl.text) ? false : true;
+                      if (!ip3Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress3Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress3Ctrl.text.isEmpty) {
+                      ip3Validation = false;
+                    }
+                    if (ipAddress4Ctrl.text.isNotEmpty) {
+                      ip4Validation =
+                          ipRegEx.hasMatch(ipAddress4Ctrl.text) ? false : true;
+                      if (!ip4Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress4Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress4Ctrl.text.isEmpty) {
+                      ip4Validation = false;
+                    }
+                    if (ipAddress5Ctrl.text.isNotEmpty) {
+                      ip5Validation =
+                          ipRegEx.hasMatch(ipAddress5Ctrl.text) ? false : true;
+                      if (!ip5Validation) {
+                        for (var ip in ipList) {
+                          if (ipAddress5Ctrl.text == ip.ipValue) {
+                            ipValidation = true;
+                            alreadyExists.add(ip.ipValue!);
+                          }
+                        }
+                      }
+                    } else if (ipAddress5Ctrl.text.isEmpty) {
+                      ip5Validation = false;
+                    }
+                    if (wifiIpRangeStartCtrl.text.isNotEmpty) {
+                      rangeIp1Validation =
+                          ipRegEx.hasMatch(wifiIpRangeStartCtrl.text)
+                              ? false
+                              : true;
+                    } else if (wifiIpRangeStartCtrl.text.isEmpty) {
+                      rangeIp1Validation = false;
+                    }
+                    if (wifiIpRangeEndCtrl.text.isNotEmpty) {
+                      rangeIp2Validation =
+                          ipRegEx.hasMatch(wifiIpRangeEndCtrl.text)
+                              ? false
+                              : true;
+                    } else if (wifiIpRangeEndCtrl.text.isEmpty) {
+                      rangeIp2Validation = false;
+                    }
                   });
 
-                  if (categoryValidation) {
-                    customSnackBar(context, 'Select valid category');
-                    return;
-                  } else if (departmentValidation) {
-                    customSnackBar(context, 'Select valid department');
+                  if (wifiIpRangeStartCtrl.text.isNotEmpty &&
+                          wifiIpRangeEndCtrl.text.isEmpty ||
+                      wifiIpRangeStartCtrl.text.isEmpty &&
+                          wifiIpRangeEndCtrl.text.isNotEmpty) {
+                    customSnackBar(
+                        context, 'Please provide start and end ip range');
+                    setState(() {
+                      isLoading = false;
+                    });
                     return;
                   }
 
-                  Device device = Device();
-                  device.name = nameCtrl.text;
-                  device.categoryId = categoryId;
-                  device.departmentId = departmentId;
-                  device.person = personCtrl.text;
-                  device.vncPassword = vncPasswordCtrl.text;
-                  device.userName = usernameCtrl.text;
-                  device.password = passwordCtrl.text;
-                  device.wifiName = wifiNameCtrl.text;
-                  device.wifiPassword = wifiPasswordCtrl.text;
-                  device.wifiIpRange = wifiIpRangeCtrl.text;
-                  device.domain = domain;
-                  device.userId = userId;
-
-                  var result = await service.saveDevice(device);
-                  await storeAddress(
-                      result['id'], ipAddress1Ctrl.text, ip1Secondary);
-
-                  if (ipAddress2Ctrl.text.isNotEmpty) {
-                    await storeAddress(
-                        result['id'], ipAddress2Ctrl.text, ip2Secondary);
-                  } else if (ipAddress3Ctrl.text.isNotEmpty) {
-                    await storeAddress(
-                        result['id'], ipAddress3Ctrl.text, ip3Secondary);
-                  } else if (ipAddress4Ctrl.text.isNotEmpty) {
-                    await storeAddress(
-                        result['id'], ipAddress4Ctrl.text, ip4Secondary);
-                  } else if (ipAddress5Ctrl.text.isNotEmpty) {
-                    await storeAddress(
-                        result['id'], ipAddress5Ctrl.text, ip5Secondary);
+                  if (rangeIp1Validation == false &&
+                      rangeIp2Validation == false) {
+                    tempList = listOfIpAddresses(
+                        wifiIpRangeStartCtrl.text, wifiIpRangeEndCtrl.text);
+                    ipListValidation(tempList, ipList, alreadyExists);
                   }
 
-                  customSnackBar(context, 'Created successfully');
-                  Navigator.pop(context, result);
+                  if (ipValidation) {
+                    String message = '';
+                    for (var ip in alreadyExists) {
+                      message += '$ip\n';
+                    }
+                    customSnackBar(context, 'Already exists\n$message');
+                  }
+
+                  if (!nameValidation &&
+                      !categoryValidation &&
+                      !departmentValidation &&
+                      !ip1Validation &&
+                      !ip2Validation &&
+                      !ip3Validation &&
+                      !ip4Validation &&
+                      !ip5Validation &&
+                      !rangeIp1Validation &&
+                      !rangeIp2Validation &&
+                      !ipValidation) {
+                    Device device = Device();
+                    device.name = nameCtrl.text;
+                    device.categoryId = categoryId;
+                    device.departmentId = departmentId;
+                    device.person = personCtrl.text;
+                    device.vncPassword = vncPasswordCtrl.text;
+                    device.userName = usernameCtrl.text;
+                    device.password = passwordCtrl.text;
+                    device.wifiName = wifiNameCtrl.text;
+                    device.wifiPassword = wifiPasswordCtrl.text;
+                    device.wifiIpRange =
+                        '${wifiIpRangeStartCtrl.text}-${wifiIpRangeEndCtrl.text}';
+                    device.domain = domain;
+                    device.userId = userId;
+
+                    var result = await service.saveDevice(device);
+
+                    if (tempList.isNotEmpty) {
+                      for (String ip in tempList) {
+                        await storeAddress(result['id'], ip, true);
+                      }
+                    }
+
+                    if (ipAddress1Ctrl.text.isNotEmpty) {
+                      await storeAddress(
+                          result['id'], ipAddress1Ctrl.text, false);
+                    }
+                    if (ipAddress2Ctrl.text.isNotEmpty) {
+                      await storeAddress(
+                          result['id'], ipAddress2Ctrl.text, false);
+                    }
+                    if (ipAddress3Ctrl.text.isNotEmpty) {
+                      await storeAddress(
+                          result['id'], ipAddress3Ctrl.text, false);
+                    }
+                    if (ipAddress4Ctrl.text.isNotEmpty) {
+                      await storeAddress(
+                          result['id'], ipAddress4Ctrl.text, false);
+                    }
+                    if (ipAddress5Ctrl.text.isNotEmpty) {
+                      await storeAddress(
+                          result['id'], ipAddress5Ctrl.text, false);
+                    }
+
+                    customSnackBar(context, 'Created successfully');
+                    Navigator.pop(context, result);
+                  } else {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
                 },
                 child: const Text(
                   'Save',
                   style: kFontBold,
                 ),
-              )
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SizedBox(
+                  height: 20.0,
+                  width: double.infinity,
+                  child: isLoading ? const LinearProgressIndicator() : null,
+                ),
+              ),
             ]),
           ),
         ),
