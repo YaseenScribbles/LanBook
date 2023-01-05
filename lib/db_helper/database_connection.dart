@@ -18,7 +18,9 @@ class DatabaseConnection {
   Future<void> _createDb(Database database, int version) async {
     String userInfoTable = """
       CREATE TABLE user_info (
-        id INTERGER PRIMARY KEY, 
+        id INTERGER PRIMARY KEY,
+        email TEXT,
+        password TEXT,
         token TEXT,
         name TEXT,
         role INTEGER,
