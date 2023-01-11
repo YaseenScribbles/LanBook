@@ -3,8 +3,8 @@ import 'package:lanbook/pages/category/categories_list_page.dart';
 import 'package:lanbook/pages/department/departments_list_page.dart';
 import 'package:lanbook/pages/device/devices_list_page.dart';
 
-const kURL = 'http://192.168.0.220:81/lanbook/api/';
-// const kURL = 'https://essagarments.ddns.me/lanbook/api/';
+// const kURL = 'http://192.168.0.220:81/lanbook/api/';
+const kURL = 'https://essagarments.ddns.me/lanbook/api/';
 
 RegExp ipRegEx = RegExp(
     '^(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\$');
