@@ -5,7 +5,6 @@ import 'package:lanbook/common/common.dart';
 import 'package:lanbook/db_helper/repository.dart';
 import 'package:lanbook/pages/homepage.dart';
 import 'package:lanbook/services/login_service.dart';
-import 'dart:io';
 // import 'package:connectivity_plus/connectivity_plus.dart';
 
 class LogIn extends StatefulWidget {
@@ -31,22 +30,21 @@ class _LogInState extends State<LogIn> {
     }
   }
 
-  getConnectionStatus() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        customSnackBar(context, 'Connected');
-      }
-    } on SocketException catch (_) {
-      customSnackBar(context, 'Not connected');
-    }
-  }
+  // getConnectionStatus() async {
+  //   try {
+  //     final result = await InternetAddress.lookup('google.com');
+  //     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+  //       customSnackBar(context, 'Connected');
+  //     }
+  //   } on SocketException catch (_) {
+  //     customSnackBar(context, 'Not connected');
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
     getLastLoggedUserInfo();
-    getConnectionStatus();
   }
 
   @override
@@ -117,7 +115,7 @@ class _LogInState extends State<LogIn> {
                           _emailCtrl.text, _passwordCtrl.text);
                       customSnackBar(context, result);
                       if (result != 'Invalid credentials') {
-                        Navigator.push(context,
+                        Navigator.pushReplacement(context,
                             MaterialPageRoute(builder: (context) {
                           return const HomePage();
                         }));

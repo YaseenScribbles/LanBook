@@ -458,9 +458,6 @@ class _EditDeviceState extends State<EditDevice> {
                             fontSize: 17.0,
                           ),
                         ),
-                        const SizedBox(
-                          width: 15.0,
-                        ),
                         Checkbox(
                             value: internet,
                             onChanged: ((value) {
@@ -475,9 +472,6 @@ class _EditDeviceState extends State<EditDevice> {
                             fontWeight: FontWeight.w400,
                             fontSize: 17.0,
                           ),
-                        ),
-                        const SizedBox(
-                          width: 15.0,
                         ),
                         Checkbox(
                             value: isActive,
