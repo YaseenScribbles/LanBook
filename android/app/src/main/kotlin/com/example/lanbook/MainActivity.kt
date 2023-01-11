@@ -1,4 +1,4 @@
-package com.example.lanbook
+package com.essa.lanbook
 
 import io.flutter.embedding.android.FlutterActivity
 

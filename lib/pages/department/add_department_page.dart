@@ -28,6 +28,9 @@ class _AddDepartmentState extends State<AddDepartment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SafeArea(
+        child: kGetDrawer(context),
+      ),
       appBar: AppBar(
         title: const Text(
           'Add Department',
@@ -59,7 +62,7 @@ class _AddDepartmentState extends State<AddDepartment> {
                         : nameValidation = false;
                   });
 
-                  department.name = departmentNameCtrl.text;
+                  department.name = departmentNameCtrl.text.toUpperCase();
                   department.userId = userId;
                   var result = await service.saveDepartment(department);
                   customSnackBar(context, result);

@@ -80,107 +80,105 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Home Page',
-            style: kFontAppBar,
-          ),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              onPressed: () {
-                showDialogBox(context);
-              },
-              icon: const Icon(Icons.logout),
-            ),
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Home Page',
+          style: kFontAppBar,
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 120.0,
-                        child: ElevatedButton(
-                          onPressed: (() {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return const CategoriesPage();
-                            }));
-                          }),
-                          child: const Text(
-                            'Categories',
-                            style: kIconFont,
-                          ),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialogBox(context);
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 120.0,
+                      child: ElevatedButton(
+                        onPressed: (() {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return const CategoriesPage();
+                          }));
+                        }),
+                        child: const Text(
+                          'Categories',
+                          style: kIconFont,
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      width: 20.0,
-                    ),
-                    Expanded(
-                      child: SizedBox(
-                        height: 120.0,
-                        child: ElevatedButton(
-                          onPressed: (() {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return const DepartmentsPage();
-                            }));
-                          }),
-                          child: const Text(
-                            'Departments',
-                            style: kIconFont,
-                          ),
+                  ),
+                  const SizedBox(
+                    width: 20.0,
+                  ),
+                  Expanded(
+                    child: SizedBox(
+                      height: 120.0,
+                      child: ElevatedButton(
+                        onPressed: (() {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return const DepartmentsPage();
+                          }));
+                        }),
+                        child: const Text(
+                          'Departments',
+                          style: kIconFont,
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 120.0,
-                        child: ElevatedButton(
-                          onPressed: (() {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: ((context) {
-                              return const DevicesPage();
-                            })));
-                          }),
-                          child: const Text(
-                            'Devices',
-                            style: kIconFont,
-                          ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 120.0,
+                      child: ElevatedButton(
+                        onPressed: (() {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: ((context) {
+                            return const DevicesPage(
+                              categoryId: 0,
+                              departmentId: 0,
+                            );
+                          })));
+                        }),
+                        child: const Text(
+                          'Devices',
+                          style: kIconFont,
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      width: 20.0,
+                  ),
+                  const SizedBox(
+                    width: 20.0,
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 120.0,
                     ),
-                    Expanded(
-                      child: Container(
-                        height: 120.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

@@ -23,11 +23,17 @@ class _EditDepartmentState extends State<EditDepartment> {
 
   deleteDepartment(BuildContext context) async {
     department.id = widget.department.id;
-    result = await service.deleteDepartment(department);
-    if (result == 'Deleted successfully') {
-      customSnackBar(context, result);
+    bool ifExists = await service.departmentDeleteConfirmation(department.id!);
+    if (ifExists) {
+      customSnackBar(context, 'Device available with this department');
       Navigator.pop(context, result);
-      Navigator.pop(context, result);
+    } else {
+      result = await service.deleteDepartment(department);
+      if (result == 'Deleted successfully') {
+        customSnackBar(context, result);
+        Navigator.pop(context, result);
+        Navigator.pop(context, result);
+      }
     }
   }
 
@@ -47,6 +53,9 @@ class _EditDepartmentState extends State<EditDepartment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SafeArea(
+        child: kGetDrawer(context),
+      ),
       appBar: AppBar(
         title: const Text(
           'Edit Department',

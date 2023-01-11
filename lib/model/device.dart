@@ -13,4 +13,5 @@ class Device {
   String? wifiIpRange;
   bool? isActive;
   int? userId;
+  bool? hasInternet;
 }

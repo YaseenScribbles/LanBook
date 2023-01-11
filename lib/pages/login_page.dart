@@ -5,6 +5,8 @@ import 'package:lanbook/common/common.dart';
 import 'package:lanbook/db_helper/repository.dart';
 import 'package:lanbook/pages/homepage.dart';
 import 'package:lanbook/services/login_service.dart';
+import 'dart:io';
+// import 'package:connectivity_plus/connectivity_plus.dart';
 
 class LogIn extends StatefulWidget {
   const LogIn({super.key});
@@ -29,10 +31,22 @@ class _LogInState extends State<LogIn> {
     }
   }
 
+  getConnectionStatus() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        customSnackBar(context, 'Connected');
+      }
+    } on SocketException catch (_) {
+      customSnackBar(context, 'Not connected');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     getLastLoggedUserInfo();
+    getConnectionStatus();
   }
 
   @override
@@ -44,85 +58,82 @@ class _LogInState extends State<LogIn> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text(
-            'Log In',
-            style: kFontAppBar,
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'Log In',
+          style: kFontAppBar,
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 10.0,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 10.0,
+              ),
+              TextField(
+                controller: _emailCtrl,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: 'Email',
+                  hintText: 'Enter your email',
+                  errorText: _nameValidation ? 'Enter a valid name' : null,
                 ),
-                TextField(
-                  controller: _emailCtrl,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
-                    errorText: _nameValidation ? 'Enter a valid name' : null,
-                  ),
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              TextField(
+                controller: _passwordCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: 'Password',
+                  hintText: 'Enter your password',
+                  errorText:
+                      _passwordValidation ? 'Enter a valid password' : null,
                 ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                TextField(
-                  controller: _passwordCtrl,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
-                    errorText:
-                        _passwordValidation ? 'Enter a valid password' : null,
-                  ),
-                ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        setState(() {
-                          _emailCtrl.text.isEmpty
-                              ? _nameValidation = true
-                              : _nameValidation = false;
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      setState(() {
+                        _emailCtrl.text.isEmpty
+                            ? _nameValidation = true
+                            : _nameValidation = false;
 
-                          _passwordCtrl.text.isEmpty
-                              ? _passwordValidation = true
-                              : _passwordValidation = false;
-                        });
-                        var result = await _service.login(
-                            _emailCtrl.text, _passwordCtrl.text);
-                        customSnackBar(context, result);
-                        if (result != 'Invalid credentials') {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return const HomePage();
-                          }));
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        shape: const StadiumBorder(),
-                      ),
-                      child: const Text(
-                        'Log In',
-                        style: kFontBold,
-                      ),
+                        _passwordCtrl.text.isEmpty
+                            ? _passwordValidation = true
+                            : _passwordValidation = false;
+                      });
+                      var result = await _service.login(
+                          _emailCtrl.text, _passwordCtrl.text);
+                      customSnackBar(context, result);
+                      if (result != 'Invalid credentials') {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return const HomePage();
+                        }));
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: const StadiumBorder(),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                    child: const Text(
+                      'Log In',
+                      style: kFontBold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

@@ -28,6 +28,9 @@ class _AddCategoryState extends State<AddCategory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SafeArea(
+        child: kGetDrawer(context),
+      ),
       appBar: AppBar(
         title: const Text(
           'Add Category',
@@ -59,7 +62,7 @@ class _AddCategoryState extends State<AddCategory> {
                         : nameValidation = false;
                   });
 
-                  category.name = categoryNameCtrl.text;
+                  category.name = categoryNameCtrl.text.toUpperCase();
                   category.userId = userId;
                   var result = await service.saveCategory(category);
                   customSnackBar(context, result);

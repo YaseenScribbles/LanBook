@@ -36,6 +36,7 @@ class _EditDeviceState extends State<EditDevice> {
   int categoryId = 0;
   int departmentId = 0;
   bool domain = true;
+  bool internet = false;
   bool isActive = true;
   bool nameValidation = false;
   var categoryValidation = false;
@@ -53,7 +54,7 @@ class _EditDeviceState extends State<EditDevice> {
   List<Department> departmentList = <Department>[];
   String result = '';
   Device device = Device();
-  bool isLoading = false;
+  bool isLoading = true;
 
   getCategroiesAndDepartment() async {
     var categories = await service.getCategories();
@@ -82,6 +83,9 @@ class _EditDeviceState extends State<EditDevice> {
         .toString()
         .toLowerCase()
         .compareTo(b.name.toString().toLowerCase())));
+    setState(() {
+      isLoading = false;
+    });
   }
 
   deleteDevice(BuildContext context) async {
@@ -100,7 +104,6 @@ class _EditDeviceState extends State<EditDevice> {
     if (results.isEmpty) return;
 
     results = results.where((address) => address['is_secondary'] == 0).toList();
-
     if (results.isEmpty) return;
     ipAddress1Ctrl.text =
         results[0]['is_secondary'] == 1 ? '' : getIp(results[0]['ip_value']);
@@ -155,6 +158,7 @@ class _EditDeviceState extends State<EditDevice> {
     departmentId = widget.device.departmentId!;
     personCtrl.text = widget.device.person.toString();
     domain = widget.device.domain! ? true : false;
+    internet = widget.device.hasInternet! ? true : false;
     vncPasswordCtrl.text = widget.device.vncPassword.toString();
     usernameCtrl.text = widget.device.userName.toString();
     passwordCtrl.text = widget.device.password.toString();
@@ -189,508 +193,540 @@ class _EditDeviceState extends State<EditDevice> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Edit Device',
-          style: kFontAppBar,
-        ),
-        actions: [
-          IconButton(
-              onPressed: () async {
-                showDialogBox(context, 'Delete', 'Are you sure', 'Ok', 'Cancel',
-                    deleteDevice);
-              },
-              icon: const Icon(Icons.delete)),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  hintText: 'Enter device name',
-                  errorText: nameValidation ? 'Enter valid name' : null,
-                  border: const OutlineInputBorder(),
-                ),
+    return isLoading
+        ? const Center(
+            child: CircularProgressIndicator(),
+          )
+        : Scaffold(
+            drawer: SafeArea(
+              child: kGetDrawer(context),
+            ),
+            appBar: AppBar(
+              title: const Text(
+                'Edit Device',
+                style: kFontAppBar,
               ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              DropdownButtonFormField(
-                  value: categoryId == 0 ? null : categoryId,
-                  decoration: InputDecoration(
-                    labelText: 'Category',
-                    hintText: 'Select device category',
-                    errorText:
-                        categoryValidation ? 'Select valid category' : null,
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: categoryList.map((category) {
-                    return DropdownMenuItem(
-                      value: category.id,
-                      child: Text(category.name.toString()),
-                    );
-                  }).toList(),
-                  onChanged: ((value) {
-                    setState(() {
-                      categoryId = value!;
-                    });
-                  })),
-              const SizedBox(
-                height: 20.0,
-              ),
-              DropdownButtonFormField(
-                  value: departmentId == 0 ? null : departmentId,
-                  decoration: InputDecoration(
-                    labelText: 'Department',
-                    hintText: 'Select device department',
-                    errorText:
-                        departmentValidation ? 'Select valid department' : null,
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: departmentList.map((department) {
-                    return DropdownMenuItem(
-                      value: department.id,
-                      child: Text(department.name.toString()),
-                    );
-                  }).toList(),
-                  onChanged: ((value) {
-                    setState(() {
-                      departmentId = value!;
-                    });
-                  })),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: personCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Person',
-                  hintText: 'Enter person name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: vncPasswordCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'VNC Password',
-                  hintText: 'Enter vnc password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: usernameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'User Name',
-                  hintText: 'Enter username',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: passwordCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Enter password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: wifiNameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'WIFI Name',
-                  hintText: 'Enter wifi name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: wifiPasswordCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'WIFI Password',
-                  hintText: 'Enter wifi password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: wifiIpRangeStartCtrl,
+              actions: [
+                IconButton(
+                    onPressed: () async {
+                      showDialogBox(context, 'Delete', 'Are you sure', 'Ok',
+                          'Cancel', deleteDevice);
+                    },
+                    icon: const Icon(Icons.delete)),
+              ],
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(children: [
+                    TextField(
+                      controller: nameCtrl,
                       decoration: InputDecoration(
-                        labelText: 'WIFI IP Range Start',
-                        hintText: 'Enter wifi starting ip',
-                        errorText: rangeIp1Validation ? 'Enter valid ip' : null,
+                        labelText: 'Name / SSID',
+                        hintText: 'Enter device name',
+                        errorText: nameValidation ? 'Enter valid name' : null,
                         border: const OutlineInputBorder(),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: 20.0,
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: wifiIpRangeEndCtrl,
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    DropdownButtonFormField(
+                        value: categoryId == 0 ? null : categoryId,
+                        decoration: InputDecoration(
+                          labelText: 'Category',
+                          hintText: 'Select device category',
+                          errorText: categoryValidation
+                              ? 'Select valid category'
+                              : null,
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: categoryList.map((category) {
+                          return DropdownMenuItem(
+                            value: category.id,
+                            child: Text(category.name.toString()),
+                          );
+                        }).toList(),
+                        onChanged: ((value) {
+                          setState(() {
+                            categoryId = value!;
+                          });
+                        })),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    DropdownButtonFormField(
+                        value: departmentId == 0 ? null : departmentId,
+                        decoration: InputDecoration(
+                          labelText: 'Department',
+                          hintText: 'Select device department',
+                          errorText: departmentValidation
+                              ? 'Select valid department'
+                              : null,
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: departmentList.map((department) {
+                          return DropdownMenuItem(
+                            value: department.id,
+                            child: Text(department.name.toString()),
+                          );
+                        }).toList(),
+                        onChanged: ((value) {
+                          setState(() {
+                            departmentId = value!;
+                          });
+                        })),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: personCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Person',
+                        hintText: 'Enter person name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: vncPasswordCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'VNC Password',
+                        hintText: 'Enter vnc password',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: usernameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'User Name',
+                        hintText: 'Enter username',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: passwordCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter password',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: wifiNameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'WIFI Name',
+                        hintText: 'Enter wifi name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: wifiPasswordCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'WIFI Password',
+                        hintText: 'Enter wifi password',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: wifiIpRangeStartCtrl,
+                            decoration: InputDecoration(
+                              labelText: 'WIFI IP Range Start',
+                              hintText: 'Enter wifi starting ip',
+                              errorText:
+                                  rangeIp1Validation ? 'Enter valid ip' : null,
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 20.0,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: wifiIpRangeEndCtrl,
+                            decoration: InputDecoration(
+                              labelText: 'WIFI IP Range End',
+                              hintText: 'Enter wifi ending ip',
+                              errorText:
+                                  rangeIp2Validation ? 'Enter valid ip' : null,
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: ipAddress1Ctrl,
                       decoration: InputDecoration(
-                        labelText: 'WIFI IP Range End',
-                        hintText: 'Enter wifi ending ip',
-                        errorText: rangeIp2Validation ? 'Enter valid ip' : null,
+                        labelText: 'IP Address 1',
+                        hintText: 'Enter ip address',
+                        errorText: ip1Validation ? 'Enter valid ip' : null,
                         border: const OutlineInputBorder(),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: ipAddress1Ctrl,
-                decoration: InputDecoration(
-                  labelText: 'IP Address 1',
-                  hintText: 'Enter ip address',
-                  errorText: ip1Validation ? 'Enter valid ip' : null,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: ipAddress2Ctrl,
-                decoration: InputDecoration(
-                  labelText: 'IP Address 2',
-                  hintText: 'Enter ip address',
-                  errorText: ip2Validation ? 'Enter valid ip' : null,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: ipAddress3Ctrl,
-                decoration: InputDecoration(
-                  labelText: 'IP Address 3',
-                  hintText: 'Enter ip address',
-                  errorText: ip3Validation ? 'Enter valid ip' : null,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: ipAddress4Ctrl,
-                decoration: InputDecoration(
-                  labelText: 'IP Address 4',
-                  hintText: 'Enter ip address',
-                  errorText: ip4Validation ? 'Enter valid ip' : null,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              TextField(
-                controller: ipAddress5Ctrl,
-                decoration: InputDecoration(
-                  labelText: 'IP Address 5',
-                  hintText: 'Enter ip address',
-                  border: const OutlineInputBorder(),
-                  errorText: ip5Validation ? 'Enter valid ip' : null,
-                ),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Checkbox(
-                      value: domain,
-                      onChanged: ((value) {
-                        setState(() {
-                          domain = value!;
-                        });
-                      })),
-                  const Text(
-                    'Domain',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 17.0,
+                    const SizedBox(
+                      height: 20.0,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Checkbox(
-                      value: isActive,
-                      onChanged: ((value) {
-                        setState(() {
-                          isActive = value!;
-                        });
-                      })),
-                  const Text(
-                    'Is Active',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 17.0,
+                    TextField(
+                      controller: ipAddress2Ctrl,
+                      decoration: InputDecoration(
+                        labelText: 'IP Address 2',
+                        hintText: 'Enter ip address',
+                        errorText: ip2Validation ? 'Enter valid ip' : null,
+                        border: const OutlineInputBorder(),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  setState(() {
-                    isLoading = true;
-                  });
-                  List<Address> ipList = await service.getAllIpAddresses();
-                  ipList =
-                      ipList.where((ip) => ip.deviceId != deviceId).toList();
-                  // List<Address> ipListPrimary =
-                  //     ipList.where((ip) => ip.isSecondary == false).toList();
-                  List<String> tempList = [];
-                  List<String> alreadyExists = [];
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: ipAddress3Ctrl,
+                      decoration: InputDecoration(
+                        labelText: 'IP Address 3',
+                        hintText: 'Enter ip address',
+                        errorText: ip3Validation ? 'Enter valid ip' : null,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: ipAddress4Ctrl,
+                      decoration: InputDecoration(
+                        labelText: 'IP Address 4',
+                        hintText: 'Enter ip address',
+                        errorText: ip4Validation ? 'Enter valid ip' : null,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    TextField(
+                      controller: ipAddress5Ctrl,
+                      decoration: InputDecoration(
+                        labelText: 'IP Address 5',
+                        hintText: 'Enter ip address',
+                        border: const OutlineInputBorder(),
+                        errorText: ip5Validation ? 'Enter valid ip' : null,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                            value: domain,
+                            onChanged: ((value) {
+                              setState(() {
+                                domain = value!;
+                              });
+                            })),
+                        const Text(
+                          'Domain',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 17.0,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 15.0,
+                        ),
+                        Checkbox(
+                            value: internet,
+                            onChanged: ((value) {
+                              setState(() {
+                                internet = value!;
+                              });
+                            })),
+                        const Text(
+                          'Internet',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 17.0,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 15.0,
+                        ),
+                        Checkbox(
+                            value: isActive,
+                            onChanged: ((value) {
+                              setState(() {
+                                isActive = value!;
+                              });
+                            })),
+                        const Text(
+                          'Is Active',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 17.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        List<Address> ipList =
+                            await service.getAllIpAddresses();
+                        ipList = ipList
+                            .where((ip) => ip.deviceId != deviceId)
+                            .toList();
+                        // List<Address> ipListPrimary =
+                        //     ipList.where((ip) => ip.isSecondary == false).toList();
+                        List<String> tempList = [];
+                        List<String> alreadyExists = [];
 
-                  setState(() {
-                    nameCtrl.text.isEmpty
-                        ? nameValidation = true
-                        : nameValidation = false;
+                        setState(() {
+                          nameCtrl.text.isEmpty
+                              ? nameValidation = true
+                              : nameValidation = false;
 
-                    categoryId <= 0
-                        ? categoryValidation = true
-                        : categoryValidation = false;
+                          categoryId <= 0
+                              ? categoryValidation = true
+                              : categoryValidation = false;
 
-                    departmentId <= 0
-                        ? departmentValidation = true
-                        : departmentValidation = false;
+                          departmentId <= 0
+                              ? departmentValidation = true
+                              : departmentValidation = false;
 
-                    if (ipAddress1Ctrl.text.isNotEmpty) {
-                      ip1Validation =
-                          ipRegEx.hasMatch(ipAddress1Ctrl.text) ? false : true;
-                      if (!ip1Validation) {
-                        for (var ip in ipList) {
-                          if (ipAddress1Ctrl.text == ip.ipValue) {
-                            ipValidation = true;
-                            alreadyExists.add(ip.ipValue!);
+                          if (ipAddress1Ctrl.text.isNotEmpty) {
+                            ip1Validation =
+                                ipRegEx.hasMatch(ipAddress1Ctrl.text)
+                                    ? false
+                                    : true;
+                            if (!ip1Validation) {
+                              for (var ip in ipList) {
+                                if (ipAddress1Ctrl.text == ip.ipValue) {
+                                  ipValidation = true;
+                                  alreadyExists.add(ip.ipValue!);
+                                }
+                              }
+                            }
+                          } else if (ipAddress1Ctrl.text.isEmpty) {
+                            ip1Validation = false;
                           }
-                        }
-                      }
-                    } else if (ipAddress1Ctrl.text.isEmpty) {
-                      ip1Validation = false;
-                    }
-                    if (ipAddress2Ctrl.text.isNotEmpty) {
-                      ip2Validation =
-                          ipRegEx.hasMatch(ipAddress2Ctrl.text) ? false : true;
-                      if (!ip2Validation) {
-                        for (var ip in ipList) {
-                          if (ipAddress2Ctrl.text == ip.ipValue) {
-                            ipValidation = true;
-                            alreadyExists.add(ip.ipValue!);
+                          if (ipAddress2Ctrl.text.isNotEmpty) {
+                            ip2Validation =
+                                ipRegEx.hasMatch(ipAddress2Ctrl.text)
+                                    ? false
+                                    : true;
+                            if (!ip2Validation) {
+                              for (var ip in ipList) {
+                                if (ipAddress2Ctrl.text == ip.ipValue) {
+                                  ipValidation = true;
+                                  alreadyExists.add(ip.ipValue!);
+                                }
+                              }
+                            }
+                          } else if (ipAddress2Ctrl.text.isEmpty) {
+                            ip2Validation = false;
                           }
-                        }
-                      }
-                    } else if (ipAddress2Ctrl.text.isEmpty) {
-                      ip2Validation = false;
-                    }
-                    if (ipAddress3Ctrl.text.isNotEmpty) {
-                      ip3Validation =
-                          ipRegEx.hasMatch(ipAddress3Ctrl.text) ? false : true;
-                      if (!ip3Validation) {
-                        for (var ip in ipList) {
-                          if (ipAddress3Ctrl.text == ip.ipValue) {
-                            ipValidation = true;
-                            alreadyExists.add(ip.ipValue!);
+                          if (ipAddress3Ctrl.text.isNotEmpty) {
+                            ip3Validation =
+                                ipRegEx.hasMatch(ipAddress3Ctrl.text)
+                                    ? false
+                                    : true;
+                            if (!ip3Validation) {
+                              for (var ip in ipList) {
+                                if (ipAddress3Ctrl.text == ip.ipValue) {
+                                  ipValidation = true;
+                                  alreadyExists.add(ip.ipValue!);
+                                }
+                              }
+                            }
+                          } else if (ipAddress3Ctrl.text.isEmpty) {
+                            ip3Validation = false;
                           }
-                        }
-                      }
-                    } else if (ipAddress3Ctrl.text.isEmpty) {
-                      ip3Validation = false;
-                    }
-                    if (ipAddress4Ctrl.text.isNotEmpty) {
-                      ip4Validation =
-                          ipRegEx.hasMatch(ipAddress4Ctrl.text) ? false : true;
-                      if (!ip4Validation) {
-                        for (var ip in ipList) {
-                          if (ipAddress4Ctrl.text == ip.ipValue) {
-                            ipValidation = true;
-                            alreadyExists.add(ip.ipValue!);
+                          if (ipAddress4Ctrl.text.isNotEmpty) {
+                            ip4Validation =
+                                ipRegEx.hasMatch(ipAddress4Ctrl.text)
+                                    ? false
+                                    : true;
+                            if (!ip4Validation) {
+                              for (var ip in ipList) {
+                                if (ipAddress4Ctrl.text == ip.ipValue) {
+                                  ipValidation = true;
+                                  alreadyExists.add(ip.ipValue!);
+                                }
+                              }
+                            }
+                          } else if (ipAddress4Ctrl.text.isEmpty) {
+                            ip4Validation = false;
                           }
-                        }
-                      }
-                    } else if (ipAddress4Ctrl.text.isEmpty) {
-                      ip4Validation = false;
-                    }
-                    if (ipAddress5Ctrl.text.isNotEmpty) {
-                      ip5Validation =
-                          ipRegEx.hasMatch(ipAddress5Ctrl.text) ? false : true;
-                      if (!ip5Validation) {
-                        for (var ip in ipList) {
-                          if (ipAddress5Ctrl.text == ip.ipValue) {
-                            ipValidation = true;
-                            alreadyExists.add(ip.ipValue!);
+                          if (ipAddress5Ctrl.text.isNotEmpty) {
+                            ip5Validation =
+                                ipRegEx.hasMatch(ipAddress5Ctrl.text)
+                                    ? false
+                                    : true;
+                            if (!ip5Validation) {
+                              for (var ip in ipList) {
+                                if (ipAddress5Ctrl.text == ip.ipValue) {
+                                  ipValidation = true;
+                                  alreadyExists.add(ip.ipValue!);
+                                }
+                              }
+                            }
+                          } else if (ipAddress5Ctrl.text.isEmpty) {
+                            ip5Validation = false;
                           }
+                          if (wifiIpRangeStartCtrl.text.isNotEmpty) {
+                            rangeIp1Validation =
+                                ipRegEx.hasMatch(wifiIpRangeStartCtrl.text)
+                                    ? false
+                                    : true;
+                          } else if (wifiIpRangeStartCtrl.text.isEmpty) {
+                            rangeIp1Validation = false;
+                          }
+                          if (wifiIpRangeEndCtrl.text.isNotEmpty) {
+                            rangeIp2Validation =
+                                ipRegEx.hasMatch(wifiIpRangeEndCtrl.text)
+                                    ? false
+                                    : true;
+                          } else if (wifiIpRangeEndCtrl.text.isEmpty) {
+                            rangeIp2Validation = false;
+                          }
+                        });
+
+                        if (wifiIpRangeStartCtrl.text.isNotEmpty &&
+                                wifiIpRangeEndCtrl.text.isEmpty ||
+                            wifiIpRangeStartCtrl.text.isEmpty &&
+                                wifiIpRangeEndCtrl.text.isNotEmpty) {
+                          customSnackBar(
+                              context, 'Please provide start and end ip range');
+                          setState(() {
+                            isLoading = false;
+                          });
+                          return;
                         }
-                      }
-                    } else if (ipAddress5Ctrl.text.isEmpty) {
-                      ip5Validation = false;
-                    }
-                    if (wifiIpRangeStartCtrl.text.isNotEmpty) {
-                      rangeIp1Validation =
-                          ipRegEx.hasMatch(wifiIpRangeStartCtrl.text)
-                              ? false
-                              : true;
-                    } else if (wifiIpRangeStartCtrl.text.isEmpty) {
-                      rangeIp1Validation = false;
-                    }
-                    if (wifiIpRangeEndCtrl.text.isNotEmpty) {
-                      rangeIp2Validation =
-                          ipRegEx.hasMatch(wifiIpRangeEndCtrl.text)
-                              ? false
-                              : true;
-                    } else if (wifiIpRangeEndCtrl.text.isEmpty) {
-                      rangeIp2Validation = false;
-                    }
-                  });
 
-                  if (wifiIpRangeStartCtrl.text.isNotEmpty &&
-                          wifiIpRangeEndCtrl.text.isEmpty ||
-                      wifiIpRangeStartCtrl.text.isEmpty &&
-                          wifiIpRangeEndCtrl.text.isNotEmpty) {
-                    customSnackBar(
-                        context, 'Please provide start and end ip range');
-                    setState(() {
-                      isLoading = false;
-                    });
-                    return;
-                  }
+                        if (rangeIp1Validation == false &&
+                            rangeIp2Validation == false) {
+                          tempList = listOfIpAddresses(
+                              wifiIpRangeStartCtrl.text,
+                              wifiIpRangeEndCtrl.text);
+                          ipListValidation(tempList, ipList, alreadyExists);
+                        }
 
-                  if (rangeIp1Validation == false &&
-                      rangeIp2Validation == false) {
-                    tempList = listOfIpAddresses(
-                        wifiIpRangeStartCtrl.text, wifiIpRangeEndCtrl.text);
-                    ipListValidation(tempList, ipList, alreadyExists);
-                  }
+                        if (ipValidation) {
+                          String message = '';
+                          for (var ip in alreadyExists) {
+                            message += '$ip\n';
+                          }
+                          customSnackBar(context, 'Already exists\n$message');
+                        }
 
-                  if (ipValidation) {
-                    String message = '';
-                    for (var ip in alreadyExists) {
-                      message += '$ip\n';
-                    }
-                    customSnackBar(context, 'Already exists\n$message');
-                  }
+                        if (!nameValidation &&
+                            !categoryValidation &&
+                            !departmentValidation &&
+                            !ip1Validation &&
+                            !ip2Validation &&
+                            !ip3Validation &&
+                            !ip4Validation &&
+                            !ip5Validation &&
+                            !rangeIp1Validation &&
+                            !rangeIp2Validation &&
+                            !ipValidation) {
+                          Device device = Device();
+                          device.id = deviceId;
+                          device.name = nameCtrl.text;
+                          device.categoryId = categoryId;
+                          device.departmentId = departmentId;
+                          device.person = personCtrl.text;
+                          device.vncPassword = vncPasswordCtrl.text;
+                          device.userName = usernameCtrl.text;
+                          device.password = passwordCtrl.text;
+                          device.wifiName = wifiNameCtrl.text;
+                          device.wifiPassword = wifiPasswordCtrl.text;
+                          device.wifiIpRange =
+                              '${wifiIpRangeStartCtrl.text}-${wifiIpRangeEndCtrl.text}';
+                          device.domain = domain;
+                          device.hasInternet = internet;
+                          device.isActive = isActive;
+                          device.userId = userId;
 
-                  if (!nameValidation &&
-                      !categoryValidation &&
-                      !departmentValidation &&
-                      !ip1Validation &&
-                      !ip2Validation &&
-                      !ip3Validation &&
-                      !ip4Validation &&
-                      !ip5Validation &&
-                      !rangeIp1Validation &&
-                      !rangeIp2Validation &&
-                      !ipValidation) {
-                    Device device = Device();
-                    device.id = deviceId;
-                    device.name = nameCtrl.text;
-                    device.categoryId = categoryId;
-                    device.departmentId = departmentId;
-                    device.person = personCtrl.text;
-                    device.vncPassword = vncPasswordCtrl.text;
-                    device.userName = usernameCtrl.text;
-                    device.password = passwordCtrl.text;
-                    device.wifiName = wifiNameCtrl.text;
-                    device.wifiPassword = wifiPasswordCtrl.text;
-                    device.wifiIpRange =
-                        '${wifiIpRangeStartCtrl.text}-${wifiIpRangeEndCtrl.text}';
-                    device.domain = domain;
-                    device.isActive = isActive;
-                    device.userId = userId;
+                          var result = await service.updateDevice(device);
+                          await service.deleteIpAddress(deviceId);
 
-                    var result = await service.updateDevice(device);
-                    await service.deleteIpAddress(deviceId);
-
-                    if (tempList.isNotEmpty) {
-                      for (String ip in tempList) {
-                        await updateAddress(deviceId, ip, true);
-                      }
-                    }
-                    if (ipAddress1Ctrl.text.isNotEmpty) {
-                      await updateAddress(deviceId, ipAddress1Ctrl.text, false);
-                    }
-                    if (ipAddress2Ctrl.text.isNotEmpty) {
-                      await updateAddress(deviceId, ipAddress2Ctrl.text, false);
-                    }
-                    if (ipAddress3Ctrl.text.isNotEmpty) {
-                      await updateAddress(deviceId, ipAddress3Ctrl.text, false);
-                    }
-                    if (ipAddress4Ctrl.text.isNotEmpty) {
-                      await updateAddress(deviceId, ipAddress4Ctrl.text, false);
-                    }
-                    if (ipAddress5Ctrl.text.isNotEmpty) {
-                      await updateAddress(deviceId, ipAddress5Ctrl.text, false);
-                    }
-                    customSnackBar(context, result);
-                    Navigator.pop(context, result);
-                  } else {
-                    setState(() {
-                      isLoading = false;
-                    });
-                  }
-                },
-                child: const Text(
-                  'Update',
-                  style: kFontBold,
+                          if (tempList.isNotEmpty) {
+                            for (String ip in tempList) {
+                              await updateAddress(deviceId, ip, true);
+                            }
+                          }
+                          if (ipAddress1Ctrl.text.isNotEmpty) {
+                            await updateAddress(
+                                deviceId, ipAddress1Ctrl.text, false);
+                          }
+                          if (ipAddress2Ctrl.text.isNotEmpty) {
+                            await updateAddress(
+                                deviceId, ipAddress2Ctrl.text, false);
+                          }
+                          if (ipAddress3Ctrl.text.isNotEmpty) {
+                            await updateAddress(
+                                deviceId, ipAddress3Ctrl.text, false);
+                          }
+                          if (ipAddress4Ctrl.text.isNotEmpty) {
+                            await updateAddress(
+                                deviceId, ipAddress4Ctrl.text, false);
+                          }
+                          if (ipAddress5Ctrl.text.isNotEmpty) {
+                            await updateAddress(
+                                deviceId, ipAddress5Ctrl.text, false);
+                          }
+                          customSnackBar(context, result);
+                          Navigator.pop(context, result);
+                        } else {
+                          setState(() {
+                            isLoading = false;
+                          });
+                        }
+                      },
+                      child: const Text(
+                        'Update',
+                        style: kFontBold,
+                      ),
+                    ),
+                  ]),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  height: 20.0,
-                  width: double.infinity,
-                  child: isLoading ? const LinearProgressIndicator() : null,
-                ),
-              ),
-            ]),
-          ),
-        ),
-      ),
-    );
+            ),
+          );
   }
 }

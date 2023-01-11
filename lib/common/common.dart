@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lanbook/pages/category/categories_list_page.dart';
+import 'package:lanbook/pages/department/departments_list_page.dart';
+import 'package:lanbook/pages/device/devices_list_page.dart';
 
-const kURL = 'http://192.168.0.220/lanbook/api/';
+// const kURL = 'http://192.168.0.220:81/lanbook/api/';
+const kURL = 'https://essagarments.ddns.me/lanbook/api/';
 
 RegExp ipRegEx = RegExp(
     '^(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.(\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\$');
@@ -48,7 +52,7 @@ const kFontBold = TextStyle(
 
 const kIconFont = TextStyle(
   fontFamily: 'Poppins',
-  fontSize: 18.0,
+  fontSize: 15.0,
   fontWeight: FontWeight.bold,
 );
 
@@ -115,6 +119,66 @@ List<String> listOfIpAddresses(String ip1, String ip2) {
     list.add(partialIp + i.toString());
   }
   return list;
+}
+
+Drawer kGetDrawer(BuildContext context) {
+  return Drawer(
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Container(
+        height: 200.0,
+        color: Colors.blue,
+        child: const Text(
+          ' LAN BOOK',
+          style: TextStyle(fontSize: 30.0, fontFamily: 'Poppins'),
+        ),
+      ),
+      ListTile(
+          title: const Text(
+            'Categories',
+            style: kIconFont,
+          ),
+          onTap: () {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: ((context) {
+              return const CategoriesPage();
+            })));
+          }),
+      const Divider(
+        color: Colors.white,
+      ),
+      ListTile(
+          title: const Text(
+            'Departments',
+            style: kIconFont,
+          ),
+          onTap: () {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: ((context) {
+              return const DepartmentsPage();
+            })));
+          }),
+      const Divider(
+        color: Colors.white,
+      ),
+      ListTile(
+          title: const Text(
+            'Devices',
+            style: kIconFont,
+          ),
+          onTap: () {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: ((context) {
+              return const DevicesPage(
+                categoryId: 0,
+                departmentId: 0,
+              );
+            })));
+          }),
+      const Divider(
+        color: Colors.white,
+      ),
+    ]),
+  );
 }
 
 // DropdownButton(

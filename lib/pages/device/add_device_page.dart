@@ -35,6 +35,7 @@ class _AddDeviceState extends State<AddDevice> {
   int categoryId = 0;
   int departmentId = 0;
   bool domain = true;
+  bool internet = false;
   bool nameValidation = false;
   bool categoryValidation = false;
   bool departmentValidation = false;
@@ -136,6 +137,9 @@ class _AddDeviceState extends State<AddDevice> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SafeArea(
+        child: kGetDrawer(context),
+      ),
       appBar: AppBar(
         title: const Text(
           'Add Device',
@@ -150,7 +154,7 @@ class _AddDeviceState extends State<AddDevice> {
               TextField(
                 controller: nameCtrl,
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: 'Name / SSID',
                   hintText: 'Enter device name',
                   errorText: nameValidation ? 'Enter valid name' : null,
                   border: const OutlineInputBorder(),
@@ -216,7 +220,6 @@ class _AddDeviceState extends State<AddDevice> {
               ),
               TextField(
                 controller: vncPasswordCtrl,
-                obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'VNC Password',
                   hintText: 'Enter vnc password',
@@ -239,7 +242,6 @@ class _AddDeviceState extends State<AddDevice> {
               ),
               TextField(
                 controller: passwordCtrl,
-                obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   hintText: 'Enter password',
@@ -262,7 +264,6 @@ class _AddDeviceState extends State<AddDevice> {
               ),
               TextField(
                 controller: wifiPasswordCtrl,
-                obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'WIFI Password',
                   hintText: 'Enter wifi password',
@@ -376,6 +377,24 @@ class _AddDeviceState extends State<AddDevice> {
                       })),
                   const Text(
                     'Domain',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 17.0,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Checkbox(
+                      value: internet,
+                      onChanged: ((value) {
+                        setState(() {
+                          internet = value!;
+                        });
+                      })),
+                  const Text(
+                    'Internet',
                     style: TextStyle(
                       color: Colors.grey,
                       fontWeight: FontWeight.w400,
@@ -550,6 +569,7 @@ class _AddDeviceState extends State<AddDevice> {
                     device.wifiIpRange =
                         '${wifiIpRangeStartCtrl.text}-${wifiIpRangeEndCtrl.text}';
                     device.domain = domain;
+                    device.hasInternet = internet;
                     device.userId = userId;
 
                     var result = await service.saveDevice(device);

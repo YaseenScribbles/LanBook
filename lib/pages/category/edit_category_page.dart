@@ -23,11 +23,17 @@ class _EditCategoryState extends State<EditCategory> {
 
   deleteCategory(BuildContext context) async {
     category.id = widget.category.id;
-    result = await service.deleteCategory(category);
-    if (result == 'Deleted successfully') {
-      customSnackBar(context, result);
-      Navigator.pop(context, result);
-      Navigator.pop(context, result);
+    bool ifExists = await service.categoryDeleteConfirmation(category.id!);
+    if (ifExists) {
+      customSnackBar(context, 'Device available with this category');
+      Navigator.pop(context);
+    } else {
+      result = await service.deleteCategory(category);
+      if (result == 'Deleted successfully') {
+        customSnackBar(context, result);
+        Navigator.pop(context, result);
+        Navigator.pop(context, result);
+      }
     }
   }
 
@@ -47,6 +53,9 @@ class _EditCategoryState extends State<EditCategory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: SafeArea(
+        child: kGetDrawer(context),
+      ),
       appBar: AppBar(
         title: const Text(
           'Edit Category',

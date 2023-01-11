@@ -21,8 +21,12 @@ class LoginService {
     if (response.statusCode == 200) {
       Map<String, dynamic> json = jsonDecode(response.body);
 
-      await _repository.saveUserInfo(
-          json['token'], json['name'], json['admin'], 1, email, password);
+      try {
+        await _repository.saveUserInfo(
+            json['token'], json['name'], json['admin'], 1, email, password);
+      } catch (e) {
+        return e.toString();
+      }
 
       userName = json['name'];
       userToken = json['token'];
@@ -58,6 +62,8 @@ class LoginService {
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       return data['id'];
+    } else {
+      return 1;
     }
   }
 }

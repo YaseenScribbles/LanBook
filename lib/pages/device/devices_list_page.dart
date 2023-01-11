@@ -6,8 +6,10 @@ import 'package:lanbook/pages/device/edit_device_page.dart';
 import 'package:lanbook/services/lanbook_service.dart';
 
 class DevicesPage extends StatefulWidget {
-  const DevicesPage({super.key});
-
+  const DevicesPage(
+      {super.key, required this.categoryId, required this.departmentId});
+  final int categoryId;
+  final int departmentId;
   @override
   State<DevicesPage> createState() => _DevicesPageState();
 }
@@ -18,8 +20,9 @@ class _DevicesPageState extends State<DevicesPage> {
   List<Device> tempList = <Device>[];
   LanbookService service = LanbookService();
   TextEditingController searchCtrl = TextEditingController();
+  bool isLoading = true;
 
-  getDevices() async {
+  Future getDevices() async {
     deviceList = [];
     var devices = await service.getDevices();
     for (var device in devices) {
@@ -38,13 +41,30 @@ class _DevicesPageState extends State<DevicesPage> {
       model.wifiIpRange = device['wifi_ip_range'] ?? '';
       model.isActive = device['is_active'] == 1 ? true : false;
       model.userId = device['user_id'];
+      model.hasInternet = device['internet'] == 1 ? true : false;
       deviceList.add(model);
     }
     deviceList.sort((a, b) => a.id!.compareTo(b.id!));
+    if (widget.departmentId != 0) {
+      deviceList = deviceList
+          .where((device) => device.departmentId == widget.departmentId)
+          .toList();
+    } else if (widget.categoryId != 0) {
+      deviceList = deviceList
+          .where((device) => device.categoryId == widget.categoryId)
+          .toList();
+    }
     setState(() {
       deviceCount = deviceList.length;
+      isLoading = false;
     });
     tempList = deviceList;
+  }
+
+  Widget loadingScreen() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
   }
 
   noDevices() {
@@ -125,27 +145,36 @@ class _DevicesPageState extends State<DevicesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: const Text(
-            'Devices',
-            style: kFontAppBar,
-          ),
-          actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return const AddDevice();
-                })).then((value) {
-                  if (value != null) {
-                    getDevices();
-                  }
-                });
-              },
-              icon: const Icon(Icons.add),
+    return isLoading
+        ? loadingScreen()
+        : RefreshIndicator(
+            onRefresh: getDevices,
+            child: Scaffold(
+              drawer: SafeArea(
+                child: kGetDrawer(context),
+              ),
+              appBar: AppBar(
+                  title: const Text(
+                    'Devices',
+                    style: kFontAppBar,
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return const AddDevice();
+                        })).then((value) {
+                          if (value != null) {
+                            getDevices();
+                          }
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                    ),
+                  ]),
+              body: deviceCount == 0 ? noDevices() : devicesList(),
             ),
-          ]),
-      body: deviceCount == 0 ? noDevices() : devicesList(),
-    );
+          );
   }
 }

@@ -155,6 +155,7 @@ class LanbookService {
       'department_id': device.departmentId,
       'person': device.person,
       'domain': device.domain! ? 1 : 0,
+      'internet': device.hasInternet! ? 1 : 0,
       'vnc_password': device.vncPassword,
       'username': device.userName,
       'password': device.password,
@@ -183,6 +184,7 @@ class LanbookService {
       'department_id': device.departmentId,
       'person': device.person,
       'domain': device.domain! ? 1 : 0,
+      'internet': device.hasInternet! ? 1 : 0,
       'vnc_password': device.vncPassword,
       'username': device.userName,
       'password': device.password,
@@ -236,7 +238,7 @@ class LanbookService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      return response.reasonPhrase.toString();
+      return [];
     }
   }
 
@@ -280,6 +282,42 @@ class LanbookService {
       return savedIpList;
     } else {
       return [];
+    }
+  }
+
+  Future<bool> departmentDeleteConfirmation(int deptId) async {
+    List<dynamic> devicesJson = await getDevices();
+    List<Device> devices = [];
+    if (devicesJson.isNotEmpty) {
+      for (var device in devicesJson) {
+        var deviceModel = Device();
+        deviceModel.departmentId = device['department_id'];
+        devices.add(deviceModel);
+      }
+    }
+    var container = devices.where((element) => element.departmentId == deptId);
+    if (container.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> categoryDeleteConfirmation(int catId) async {
+    List<dynamic> devicesJson = await getDevices();
+    List<Device> devices = [];
+    if (devicesJson.isNotEmpty) {
+      for (var device in devicesJson) {
+        var deviceModel = Device();
+        deviceModel.categoryId = device['category_id'];
+        devices.add(deviceModel);
+      }
+    }
+    var container = devices.where((element) => element.categoryId == catId);
+    if (container.isNotEmpty) {
+      return true;
+    } else {
+      return false;
     }
   }
 }

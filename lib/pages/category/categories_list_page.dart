@@ -3,6 +3,7 @@ import 'package:lanbook/common/common.dart';
 import 'package:lanbook/model/category.dart';
 import 'package:lanbook/pages/category/add_category_page.dart';
 import 'package:lanbook/pages/category/edit_category_page.dart';
+import 'package:lanbook/pages/device/devices_list_page.dart';
 import 'package:lanbook/services/lanbook_service.dart';
 
 class CategoriesPage extends StatefulWidget {
@@ -16,8 +17,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
   int categoryCount = 0;
   List<Category> categoryList = <Category>[];
   LanbookService service = LanbookService();
+  bool isLoading = true;
 
-  getCategories() async {
+  Future getCategories() async {
     categoryList = [];
     var categories = await service.getCategories();
     for (var category in categories) {
@@ -30,7 +32,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
     }
     setState(() {
       categoryCount = categoryList.length;
+      isLoading = false;
     });
+  }
+
+  Widget loadingScreen() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
   }
 
   noCategories() {
@@ -53,6 +62,17 @@ class _CategoriesPageState extends State<CategoriesPage> {
               child: Card(
                 elevation: 10.0,
                 child: ListTile(
+                  trailing: IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return DevicesPage(
+                            categoryId: categoryList[index].id!,
+                            departmentId: 0);
+                      }));
+                    },
+                  ),
                   onTap: () {
                     Navigator.push(context,
                         MaterialPageRoute(builder: ((context) {
@@ -82,27 +102,36 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: const Text(
-            'Categories',
-            style: kFontAppBar,
-          ),
-          actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return const AddCategory();
-                })).then((value) {
-                  if (value != null) {
-                    getCategories();
-                  }
-                });
-              },
-              icon: const Icon(Icons.add),
+    return isLoading
+        ? loadingScreen()
+        : RefreshIndicator(
+            onRefresh: getCategories,
+            child: Scaffold(
+              drawer: SafeArea(
+                child: kGetDrawer(context),
+              ),
+              appBar: AppBar(
+                  title: const Text(
+                    'Categories',
+                    style: kFontAppBar,
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return const AddCategory();
+                        })).then((value) {
+                          if (value != null) {
+                            getCategories();
+                          }
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                    ),
+                  ]),
+              body: categoryCount == 0 ? noCategories() : categoriesList(),
             ),
-          ]),
-      body: categoryCount == 0 ? noCategories() : categoriesList(),
-    );
+          );
   }
 }
